@@ -1,5 +1,5 @@
 {
-  "name": "electrical-ellipse",
+  "name": "radionews",
   "type": "module",
   "version": "0.0.1",
   "engines": {
@@ -12,6 +12,15 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^6.1.4"
+    "@astrojs/react": "^5.0.3",
+    "@astrojs/vercel": "^8.0.4",
+    "@supabase/supabase-js": "^2.105.1",
+    "@tailwindcss/vite": "^4.2.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "astro": "^6.1.4",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "tailwindcss": "^4.2.2"
   }
 }

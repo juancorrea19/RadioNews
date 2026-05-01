@@ -1,0 +1,105 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { NEWS_CATEGORY_OPTIONS } from "../../../lib/news-categories";
+import { getAuthenticatedAdmin } from "../../../lib/server/admin-auth";
+import { formatDatetimeLocal, getAdminNewsById } from "../../../lib/server/news-admin";
+
+const session = await getAuthenticatedAdmin(Astro.cookies);
+
+if (!session.user) {
+  return Astro.redirect("/admin/login");
+}
+
+const id = Astro.params.id;
+
+if (!id) {
+  throw new Error("No se recibio el id de la noticia.");
+}
+
+const article = await getAdminNewsById(id);
+
+if (!article) {
+  throw new Error(`No se encontro la noticia ${id}.`);
+}
+
+const error = Astro.url.searchParams.get("error");
+const saved = Astro.url.searchParams.get("saved");
+---
+
+<AdminLayout title="Editar noticia" userEmail={session.user.email ?? undefined}>
+  <section class="rounded-[28px] border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+    {error && (
+      <div class="mb-6 rounded-2xl border border-red-400/25 bg-red-400/10 p-4 text-sm text-red-100">
+        {error}
+      </div>
+    )}
+
+    {saved && (
+      <div class="mb-6 rounded-2xl border border-emerald-400/25 bg-emerald-400/10 p-4 text-sm text-emerald-100">
+        La noticia se guardo correctamente.
+      </div>
+    )}
+
+    <form method="POST" action="/api/admin/news/save" enctype="multipart/form-data" class="grid gap-6 lg:grid-cols-2">
+      <input type="hidden" name="id" value={article.id} />
+      <input type="hidden" name="existingCoverImageUrl" value={article.cover_image_url ?? ""} />
+      <input type="hidden" name="existingCoverImagePath" value={article.cover_image_path ?? ""} />
+
+      <label class="block">
+        <span class="mb-2 block text-sm text-white/75">Titulo</span>
+        <input type="text" name="title" value={article.title} required class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]" />
+      </label>
+
+      <label class="block">
+        <span class="mb-2 block text-sm text-white/75">Categoria</span>
+        <select name="category" required class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]">
+          {NEWS_CATEGORY_OPTIONS.map((option) => (
+            <option value={option.slug} selected={option.slug === article.category}>{option.title}</option>
+          ))}
+        </select>
+      </label>
+
+      <label class="block">
+        <span class="mb-2 block text-sm text-white/75">Redactor</span>
+        <input type="text" name="author" value={article.author ?? "Redaccion Radio News Online"} class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]" />
+      </label>
+
+      <label class="block">
+        <span class="mb-2 block text-sm text-white/75">Fecha de publicacion</span>
+        <input type="datetime-local" name="publishedAt" value={formatDatetimeLocal(article.published_at)} required class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]" />
+      </label>
+
+      <label class="block lg:col-span-2">
+        <span class="mb-2 block text-sm text-white/75">Descripcion corta</span>
+        <textarea name="excerpt" rows="3" class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]">{article.excerpt ?? ""}</textarea>
+      </label>
+
+      <label class="block">
+        <span class="mb-2 block text-sm text-white/75">Estado</span>
+        <select name="status" class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]">
+          <option value="draft" selected={article.status === "draft"}>Borrador</option>
+          <option value="published" selected={article.status === "published"}>Publicado</option>
+        </select>
+      </label>
+
+      <label class="block">
+        <span class="mb-2 block text-sm text-white/75">Cambiar imagen principal</span>
+        <input type="file" name="coverImage" accept="image/*" class="block w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-sm text-white/80 file:mr-4 file:rounded-full file:border-0 file:bg-[#a62b2b] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" />
+        {article.cover_image_url && (
+          <img src={article.cover_image_url} alt={article.title} class="mt-4 h-40 w-full rounded-2xl object-cover" />
+        )}
+      </label>
+
+      <label class="block lg:col-span-2">
+        <span class="mb-2 block text-sm text-white/75">Articulo completo</span>
+        <textarea name="body" rows="14" required class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]">{article.body}</textarea>
+      </label>
+
+      <div class="lg:col-span-2 flex justify-end">
+        <button type="submit" class="rounded-full bg-[#a62b2b] px-6 py-3 font-semibold text-white transition-colors hover:bg-[#8f2424]">
+          Guardar cambios
+        </button>
+      </div>
+    </form>
+  </section>
+</AdminLayout>

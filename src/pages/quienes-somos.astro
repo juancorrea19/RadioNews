@@ -1,0 +1,37 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/header.astro';
+import Footer from '../components/footer.astro';
+
+const pageTitle = 'Quiénes Somos | Radio News Online';
+const pageDescription =
+  'Conoce la misión, visión y propósito de Radio News Online como medio digital comprometido con la información cercana, ágil y veraz.';
+---
+
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  canonical="/quienes-somos"
+>
+    <Header />
+  <main class="max-w-4xl mx-auto px-6 py-16 bg-smoke">
+    <div class="mb-12 text-center">
+      <h1 class="text-4xl md:text-5xl font-newsreader font-bold text-[#1a2332] mb-4">
+        Quiénes Somos
+      </h1>
+      <div class="w-20 h-1 bg-[#a62b2b] mx-auto rounded-full"></div>
+    </div>
+
+    <section class="space-y-6 text-lg text-gray-700 leading-relaxed">
+      <p>
+        En <strong>Radio News Online</strong>, nuestra misión es mantenerte informado en tiempo real, rompiendo barreras y acercando la noticia a un solo clic. Nacimos con el objetivo de ser la voz de nuestra comunidad, combinando la inmediatez digital con la calidad periodística que mereces.
+      </p>
+      
+      <h2 class="text-2xl font-semibold text-[#1a2332] pt-6">Nuestra Visión</h2>
+      <p>
+        Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptatibus laboriosam explicabo blanditiis excepturi deserunt quo! Sapiente et eius deleniti rem laudantium fuga soluta. Voluptas tempora aspernatur laborum debitis exercitationem voluptatibus?Convertirnos en el medio de comunicación referente de la región, destacando por nuestra veracidad, tecnología y compromiso social. Creemos en un periodismo cercano, dinámico y honesto.
+      </p>
+    </section>
+  </main>
+  <Footer />
+</Layout>

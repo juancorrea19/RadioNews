@@ -1,0 +1,79 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { getAuthenticatedAdmin } from "../../../lib/server/admin-auth";
+import { formatDatetimeLocal } from "../../../lib/server/news-admin";
+import { NEWS_CATEGORY_OPTIONS } from "../../../lib/news-categories";
+
+const session = await getAuthenticatedAdmin(Astro.cookies);
+
+if (!session.user) {
+  return Astro.redirect("/admin/login");
+}
+
+const error = Astro.url.searchParams.get("error");
+---
+
+<AdminLayout title="Nueva noticia" userEmail={session.user.email ?? undefined}>
+  <section class="rounded-[28px] border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+    {error && (
+      <div class="mb-6 rounded-2xl border border-red-400/25 bg-red-400/10 p-4 text-sm text-red-100">
+        {error}
+      </div>
+    )}
+
+    <form method="POST" action="/api/admin/news/save" enctype="multipart/form-data" class="grid gap-6 lg:grid-cols-2">
+      <label class="block">
+        <span class="mb-2 block text-sm text-white/75">Titulo</span>
+        <input type="text" name="title" required class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]" />
+      </label>
+
+      <label class="block">
+        <span class="mb-2 block text-sm text-white/75">Categoria</span>
+        <select name="category" required class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]">
+          {NEWS_CATEGORY_OPTIONS.map((option) => (
+            <option value={option.slug}>{option.title}</option>
+          ))}
+        </select>
+      </label>
+
+      <label class="block">
+        <span class="mb-2 block text-sm text-white/75">Redactor</span>
+        <input type="text" name="author" value="Redaccion Radio News Online" class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]" />
+      </label>
+
+      <label class="block">
+        <span class="mb-2 block text-sm text-white/75">Fecha de publicacion</span>
+        <input type="datetime-local" name="publishedAt" value={formatDatetimeLocal(new Date().toISOString())} required class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]" />
+      </label>
+
+      <label class="block lg:col-span-2">
+        <span class="mb-2 block text-sm text-white/75">Descripcion corta</span>
+        <textarea name="excerpt" rows="3" class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]"></textarea>
+      </label>
+
+      <label class="block">
+        <span class="mb-2 block text-sm text-white/75">Estado</span>
+        <select name="status" class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]">
+          <option value="draft">Borrador</option>
+          <option value="published">Publicado</option>
+        </select>
+      </label>
+
+      <label class="block">
+        <span class="mb-2 block text-sm text-white/75">Imagen principal</span>
+        <input type="file" name="coverImage" accept="image/*" required class="block w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-sm text-white/80 file:mr-4 file:rounded-full file:border-0 file:bg-[#a62b2b] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" />
+      </label>
+
+      <label class="block lg:col-span-2">
+        <span class="mb-2 block text-sm text-white/75">Articulo completo</span>
+        <textarea name="body" rows="14" required class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]" placeholder="Escribe el articulo. Separa parrafos con una linea en blanco."></textarea>
+      </label>
+
+      <div class="lg:col-span-2 flex justify-end">
+        <button type="submit" class="rounded-full bg-[#a62b2b] px-6 py-3 font-semibold text-white transition-colors hover:bg-[#8f2424]">
+          Guardar noticia
+        </button>
+      </div>
+    </form>
+  </section>
+</AdminLayout>

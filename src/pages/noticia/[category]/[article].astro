@@ -1,0 +1,224 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import Header from '../../../components/header.astro';
+import AdSlot from '../../../components/AdSlot.astro';
+import Footer from '../../../components/footer.astro';
+import {
+  findNewsItem,
+  getAllNews,
+  getCrossCategoryNews,
+  getRelatedNews,
+} from '../../../lib/news';
+import { adSlots } from '../../../data/ads';
+
+export async function getStaticPaths() {
+  const allNews = await getAllNews();
+
+  return allNews.map((article) => ({
+    params: {
+      category: article.categorySlug,
+      article: article.slug,
+    },
+  }));
+}
+
+const categorySlug = Astro.params.category;
+const articleSlug = Astro.params.article;
+
+if (!categorySlug || !articleSlug) {
+  throw new Error('No se recibieron los parametros de la noticia.');
+}
+
+const article = await findNewsItem(categorySlug, articleSlug);
+
+if (!article) {
+  throw new Error(`No se encontro la noticia ${categorySlug}/${articleSlug}.`);
+}
+
+const relatedNews = await getRelatedNews(categorySlug, articleSlug, 4);
+const differentCategoryNews = await getCrossCategoryNews(categorySlug, articleSlug, 6);
+const articleSummary =
+  article.excerpt ??
+  'Seguimiento, contexto y desarrollo de la noticia para entender sus puntos principales.';
+const articleImage = typeof article.image === 'string' ? article.image : article.image.src;
+const renderedArticle = article.entry ? await article.entry.render() : null;
+const Content = renderedArticle?.Content;
+---
+
+<Layout
+  title={`${article.headline} | Radio News Online`}
+  description={articleSummary}
+  canonical={`/noticia/${categorySlug}/${articleSlug}`}
+  image={articleImage}
+  type="article"
+>
+  <div class="min-h-screen flex flex-col overflow-x-hidden text-white" style="background-color: #041d3d;">
+    <Header />
+
+    <main class="flex-1">
+      <section class="max-w-7xl mx-auto px-4 md:px-6 pt-10 pb-8">
+        <nav class="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-white/85">
+          <a href="/" class="hover:text-white transition-colors">Inicio</a>
+          <span>/</span>
+          <span class="text-white/70">{article.category}</span>
+          <span>/</span>
+          <span class="text-white">{article.headline}</span>
+        </nav>
+
+        <div class="mt-6 grid gap-8 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <article class="overflow-hidden rounded-[28px] bg-[#f2f2f2] text-[#1a2332] shadow-[0_30px_60px_rgba(0,0,0,0.22)]">
+            <div class="relative min-h-[340px] md:min-h-[520px]">
+              <img
+                src={articleImage}
+                alt={article.headline}
+                class="absolute inset-0 h-full w-full object-cover"
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-[#041d3d] via-[#041d3d]/45 to-transparent"></div>
+
+              <div class="absolute inset-x-0 bottom-0 p-6 md:p-10">
+                <div class="flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.2em]">
+                  <span class="rounded-full bg-[#a62b2b] px-4 py-1.5 font-semibold text-white">{article.category}</span>
+                  <span class="text-white/65">{article.timeAgo}</span>
+                </div>
+
+                <h1 class="mt-5 max-w-4xl font-newsreader text-4xl leading-tight text-white md:text-6xl">
+                  {article.headline}
+                </h1>
+
+                <p class="mt-4 max-w-3xl text-base leading-7 text-white/82 md:text-lg">
+                  {articleSummary}
+                </p>
+              </div>
+            </div>
+
+            <div class="grid gap-8 px-6 py-8 md:px-10 md:py-10 lg:grid-cols-[minmax(0,1fr)_250px]">
+              <div>
+                <div class="flex flex-wrap items-center gap-4 border-b border-slate-200 pb-5 text-sm text-slate-500">
+                  <span class="font-semibold text-[#a62b2b]">{article.author ?? 'Redaccion Radio News Online'}</span>
+                  <span>Actualizado hace {article.timeAgo}</span>
+                  <a href="/" class="rounded-full border border-[#a62b2b]/25 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#a62b2b] transition-colors hover:bg-[#a62b2b] hover:text-white">
+                    Volver al inicio
+                  </a>
+                </div>
+
+                <div class="article-copy mt-8 space-y-6 font-newsreader text-[19px] leading-9 text-slate-700">
+                  {Content ? <Content /> : article.content.map((paragraph) => <p>{paragraph}</p>)}
+                </div>
+
+                <div class="mt-10">
+                  <AdSlot ad={adSlots.articleInline} variant="card" className="border-slate-200 bg-slate-50" />
+                </div>
+              </div>
+
+            </div>
+          </article>
+
+          <aside class="h-fit rounded-[28px] border border-white/10 bg-white/5 p-5 backdrop-blur-sm xl:sticky xl:top-28">
+            <div class="flex items-center justify-between gap-3 border-b border-white/10 pb-4">
+              <div>
+                <span class="text-[11px] uppercase tracking-[0.2em] text-white/85">En comun</span>
+                <h2 class="mt-2 font-newsreader text-2xl text-white">Mas de {article.category}</h2>
+              </div>
+              <span class="rounded-full bg-[#a62b2b]/90 px-3 py-1 text-[8px] uppercase tracking-[0.18em] text-white w-fit">
+                Relacionadas
+              </span>
+            </div>
+
+            <div class="mt-5 space-y-4">
+              {relatedNews.map((item) => (
+                <a
+                  href={item.href}
+                  class="group flex gap-3 rounded-[22px] border border-white/8 bg-[#06172f] p-3 transition-colors hover:bg-[#0a2143]"
+                >
+                  <img
+                    src={typeof item.image === 'string' ? item.image : item.image.src}
+                    alt={item.headline}
+                    class="h-20 w-24 rounded-2xl object-cover"
+                  />
+                  <div class="min-w-0">
+                    <span class="text-[10px] uppercase tracking-[0.16em] text-white/90">{item.category}</span>
+                    <h3 class="mt-2 font-newsreader text-lg leading-6 text-white transition-colors group-hover:text-[#ffd2d2]">
+                      {item.headline}
+                    </h3>
+                    <p class="mt-2 text-xs uppercase tracking-[0.14em] text-white/60">{item.timeAgo}</p>
+                  </div>
+                </a>
+              ))}
+            </div>
+
+            <div class="mt-5">
+              <AdSlot ad={adSlots.articleSidebar} variant="sidebar" />
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="max-w-7xl mx-auto px-4 md:px-6 pb-16">
+        <div class="flex flex-col gap-3 border-b border-white/10 pb-6 md:flex-row md:items-end md:justify-between">
+          <div>
+            <span class="text-[11px] uppercase tracking-[0.22em] text-white/85">Otras categorias</span>
+            <h2 class="mt-2 font-newsreader text-3xl text-white md:text-4xl">Tambien te puede interesar</h2>
+          </div>
+        </div>
+
+        <div class="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          {differentCategoryNews.map((item) => (
+            <a
+              href={item.href}
+              class="group overflow-hidden rounded-[24px] border border-white/10 bg-[#06172f] transition-transform duration-300 hover:-translate-y-1"
+            >
+              <div class="relative h-52 overflow-hidden">
+                <img
+                  src={typeof item.image === 'string' ? item.image : item.image.src}
+                  alt={item.headline}
+                  class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div class="absolute inset-0 bg-gradient-to-t from-[#041d3d] via-transparent to-transparent"></div>
+                <span class="absolute left-4 top-4 rounded-full bg-[#a62b2b] px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-white">
+                  {item.category}
+                </span>
+              </div>
+
+              <div class="p-5">
+                <p class="text-[11px] uppercase tracking-[0.18em] text-white/70">{item.timeAgo}</p>
+                <h3 class="mt-3 font-newsreader text-2xl leading-8 text-white transition-colors group-hover:text-[#ffd2d2]">
+                  {item.headline}
+                </h3>
+                <p class="mt-3 text-md leading-6 text-white/80">
+                  {item.excerpt ?? 'Accede a la cobertura completa y sigue explorando la agenda del momento.'}
+                </p>
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
+    </main>
+
+    <Footer />
+  </div>
+</Layout>
+
+<style>
+  .article-copy :global(p) {
+    margin-bottom: 1.5rem;
+  }
+
+  .article-copy :global(h2),
+  .article-copy :global(h3) {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    color: #1a2332;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .article-copy :global(ul),
+  .article-copy :global(ol) {
+    margin: 1.5rem 0;
+    padding-left: 1.5rem;
+  }
+
+  .article-copy :global(li) {
+    margin-bottom: 0.75rem;
+  }
+</style>

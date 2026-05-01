@@ -1,23 +1,70 @@
-<!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
-	</head>
-	<body>
-		<slot />
-	</body>
-</html>
+---
+import '../styles/global.css';
+import RadioPlayer from '../components/RadioPlayer';
 
-<style>
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-	}
-</style>
+export interface Props {
+  title?: string;
+  description?: string;
+  canonical?: string;
+  image?: string;
+  type?: 'website' | 'article';
+  noindex?: boolean;
+  jsonLd?: Record<string, unknown> | Array<Record<string, unknown>>;
+}
+const {
+  title = 'Radio News Online',
+  description = 'Radio News Online - La noticia a un click',
+  canonical,
+  image,
+  type = 'website',
+  noindex = false,
+  jsonLd,
+} = Astro.props;
+
+const site = Astro.site ?? (import.meta.env.PUBLIC_SITE_URL ? new URL(import.meta.env.PUBLIC_SITE_URL) : undefined);
+const canonicalUrl =
+  site && canonical
+    ? new URL(canonical, site).toString()
+    : site
+      ? Astro.url.toString()
+      : undefined;
+const imageUrl =
+  image && site
+    ? new URL(image, site).toString()
+    : image?.startsWith('http://') || image?.startsWith('https://')
+      ? image
+      : undefined;
+const robotsContent = noindex ? 'noindex, nofollow' : 'index, follow';
+const jsonLdItems = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
+---
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <meta name="robots" content={robotsContent} />
+    <meta name="author" content="Radio News Online" />
+    <meta property="og:locale" content="es_CO" />
+    <meta property="og:site_name" content="Radio News Online" />
+    <meta property="og:type" content={type} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
+    <meta name="twitter:card" content={imageUrl ? 'summary_large_image' : 'summary'} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {imageUrl && <meta property="og:image" content={imageUrl} />}
+    {imageUrl && <meta name="twitter:image" content={imageUrl} />}
+    {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <title>{title}</title>
+    {jsonLdItems.map((item) => (
+      <script type="application/ld+json" set:html={JSON.stringify(item)} />
+    ))}
+  </head>
+  <body class="bg-[#041d3d] text-white">
+    <slot />
+    <RadioPlayer />
+  </body>
+</html>

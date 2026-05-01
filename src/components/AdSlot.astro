@@ -1,0 +1,70 @@
+---
+import type { AdSlotConfig } from '../data/ads';
+
+interface Props {
+  ad: AdSlotConfig
+  variant?: 'banner' | 'card' | 'sidebar'
+  className?: string
+}
+
+const { ad, variant = 'banner', className = '' } = Astro.props
+const hasCreative = Boolean(ad.imageSrc)
+const href = ad.href?.trim() ? ad.href : undefined
+const Tag = href ? 'a' : 'div'
+
+const variantClasses = {
+  banner: 'min-h-[180px] md:min-h-[220px] px-6 py-6 md:px-10 md:py-8',
+  card: 'min-h-[220px] px-6 py-6',
+  sidebar: 'min-h-[360px] px-5 py-5',
+}
+---
+
+<Tag
+  href={href}
+  class:list={[
+    'group relative block overflow-hidden rounded-[26px] border border-white/10 bg-white/5 backdrop-blur-sm',
+    'shadow-[0_18px_40px_rgba(0,0,0,0.16)] transition-transform duration-300',
+    href && 'hover:-translate-y-1',
+    className,
+  ]}
+>
+  <div class:list={['relative isolate flex h-full flex-col justify-between', variantClasses[variant]]}>
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(166,43,43,0.22),transparent_40%),linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))]"></div>
+    <div class="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:26px_26px]"></div>
+
+    {hasCreative ? (
+      <>
+        <img
+          src={ad.imageSrc}
+          alt={ad.alt ?? ad.title}
+          class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+        />
+        <div class="absolute inset-0 bg-gradient-to-t from-[#041d3d]/92 via-[#041d3d]/38 to-[#041d3d]/20"></div>
+      </>
+    ) : (
+      <div class="absolute inset-[14px] rounded-[20px] border border-dashed border-white/15"></div>
+    )}
+
+    <div class="relative z-10 flex items-center justify-between gap-3">
+      <span class="rounded-full bg-[#a62b2b]/90 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-white">
+        {ad.label}
+      </span>
+      <span class="text-[10px] uppercase tracking-[0.22em] text-white/45">
+        {hasCreative ? 'Activo' : 'Disponible'}
+      </span>
+    </div>
+
+    <div class="relative z-10 mt-auto max-w-2xl">
+      <h3 class="font-newsreader text-2xl leading-tight text-white md:text-3xl">
+        {ad.title}
+      </h3>
+      <p class="mt-3 max-w-xl text-sm leading-6 text-white/68 md:text-base">
+        {ad.description}
+      </p>
+      <div class="mt-5 inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-[#ffd3d3]">
+        <span>{ad.cta ?? 'Espacio disponible'}</span>
+        <span aria-hidden="true">-&gt;</span>
+      </div>
+    </div>
+  </div>
+</Tag>

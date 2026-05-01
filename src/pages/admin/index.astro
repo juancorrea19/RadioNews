@@ -1,0 +1,72 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import { getAuthenticatedAdmin } from "../../lib/server/admin-auth";
+import { listAdminNews } from "../../lib/server/news-admin";
+import { isSupabaseConfigured } from "../../lib/server/supabase";
+
+const session = await getAuthenticatedAdmin(Astro.cookies);
+
+if (!session.user) {
+  return Astro.redirect("/admin/login");
+}
+
+const newsItems = isSupabaseConfigured() ? await listAdminNews() : [];
+---
+
+<AdminLayout title="Noticias" userEmail={session.user.email ?? undefined}>
+  <section class="rounded-[28px] border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
+    {newsItems.length === 0 ? (
+      <div class="rounded-[22px] border border-dashed border-white/15 bg-[#06172f] p-8 text-center">
+        <h2 class="font-newsreader text-2xl text-white">Aun no hay noticias en Supabase</h2>
+        <p class="mt-3 text-sm leading-6 text-white/70">
+          Cuando crees la primera noticia desde el panel, empezara a aparecer aqui y en la web publica.
+        </p>
+        <a
+          href="/admin/noticias/nueva"
+          class="mt-5 inline-flex rounded-full bg-[#a62b2b] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#8f2424]"
+        >
+          Crear primera noticia
+        </a>
+      </div>
+    ) : (
+      <div class="overflow-hidden rounded-[22px] border border-white/10">
+        <table class="min-w-full divide-y divide-white/10 text-left">
+          <thead class="bg-white/5 text-xs uppercase tracking-[0.18em] text-white/60">
+            <tr>
+              <th class="px-5 py-4">Titulo</th>
+              <th class="px-5 py-4">Categoria</th>
+              <th class="px-5 py-4">Estado</th>
+              <th class="px-5 py-4">Publicacion</th>
+              <th class="px-5 py-4">Accion</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/10 bg-[#06172f]">
+            {newsItems.map((item) => (
+              <tr>
+                <td class="px-5 py-4">
+                  <div class="font-newsreader text-xl text-white">{item.title}</div>
+                  <div class="mt-1 text-xs uppercase tracking-[0.14em] text-white/45">{item.slug}</div>
+                </td>
+                <td class="px-5 py-4 text-sm text-white/75">{item.category}</td>
+                <td class="px-5 py-4">
+                  <span class={`rounded-full px-3 py-1 text-xs uppercase tracking-[0.18em] ${item.status === 'published' ? 'bg-emerald-400/15 text-emerald-200' : 'bg-amber-400/15 text-amber-100'}`}>
+                    {item.status}
+                  </span>
+                </td>
+                <td class="px-5 py-4 text-sm text-white/75">{new Date(item.published_at).toLocaleString("es-CO")}</td>
+                <td class="px-5 py-4">
+                  <a
+                    href={`/admin/noticias/${item.id}`}
+                    class="rounded-full border border-white/15 px-4 py-2 text-sm text-white/85 transition-colors hover:bg-white/10"
+                  >
+                    Editar
+                  </a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+  </section>
+</AdminLayout>

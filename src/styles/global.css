@@ -1,0 +1,38 @@
+/* Tailwind v4: escanear src/ (ruta relativa a este archivo) */
+@import "tailwindcss";
+
+@theme {
+  --color-dark-navy: #02153c;
+  --color-navy: #1a2332;
+  --color-slate: #444242;
+  --color-firebrick: #ac1b23;
+  --color-firebrick-light: rgba(172, 27, 35, 0.73);
+  --color-red-brand: #e30713;
+  --color-midnight-blue: #042e84;
+  --color-smoke: #f2f2f2;
+  --color-lavender: #ffecec;
+
+  --font-inter: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-newsreader: "Newsreader 16pt", Georgia, ui-serif, serif;
+
+  --radius-20: 20px;
+  --radius-30: 30px;
+
+  --shadow-drop: 0px 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+@layer base {
+  body {
+    @apply bg-dark-navy text-white;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}

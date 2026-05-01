@@ -1,11 +1,77 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
+import Header from '../components/header.astro';
+import FlashArticuloCarousel from '../components/carousel.astro';
+import TickerBar from "../components/Tickerbar.tsx";
+import AdSlot from '../components/AdSlot.astro';
+import { NewsCategoriesGrid } from '../components/NewsCategoriesGrid.tsx';
+import Footer from '../components/footer.astro';
+import { adSlots } from '../data/ads';
+import RadioPlayer from '../components/RadioPlayer';
+import { getCategoriesData } from '../lib/news';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const pageTitle = 'Radio News Online | Noticias de última hora y radio en vivo';
+const pageDescription =
+  'Sigue en Radio News Online las noticias de última hora, el flash informativo, cobertura por categorías y la transmisión en vivo en un solo lugar.';
+const categoriesData = await getCategoriesData();
+const site = Astro.site ?? (import.meta.env.PUBLIC_SITE_URL ? new URL(import.meta.env.PUBLIC_SITE_URL) : undefined);
+const siteUrl = site?.toString();
+const logoUrl = site ? new URL('/favicon.png', site).toString() : undefined;
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'NewsMediaOrganization',
+  name: 'Radio News Online',
+  ...(siteUrl ? { url: siteUrl } : {}),
+  ...(logoUrl ? { logo: logoUrl } : {}),
+  sameAs: [
+    'https://www.instagram.com/radionews_online/',
+    'https://www.facebook.com/radionewsonline/',
+    'https://www.youtube.com/@radionewsonline',
+  ],
+};
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Radio News Online',
+  ...(siteUrl ? { url: siteUrl } : {}),
+  inLanguage: 'es',
+  description: pageDescription,
+};
 ---
 
-<Layout>
-	<Welcome />
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  canonical="/"
+  jsonLd={[organizationSchema, websiteSchema]}
+>
+  <div class="min-h-screen flex flex-col overflow-x-hidden text-white" style="background-color: #041d3d;">
+    <Header />
+    <TickerBar client:load />
+    
+    <div id="flash-informativo" class="relative z-10 max-w-7xl mx-auto px-6 pt-12 scroll-mt-24">
+      <h2 class="text-3xl md:text-[40px] font-semibold font-newsreader text-[#f2f2f2]">
+        Flash informativo
+      </h2>
+    </div>
+
+    <FlashArticuloCarousel />
+
+    <section class="max-w-7xl mx-auto w-full px-4 md:px-6 mt-8">
+      <AdSlot ad={adSlots.indexTop} variant="banner" />
+    </section>
+    
+    <main>
+      <NewsCategoriesGrid 
+        categories={categoriesData}
+        client:load 
+      />
+
+      <section class="max-w-7xl mx-auto w-full px-4 md:px-6 pb-6">
+        <AdSlot ad={adSlots.indexMid} variant="card" />
+      </section>
+    </main>
+    <RadioPlayer client:load />
+    <Footer isHome={true} />
+  </div>
 </Layout>
