@@ -11,10 +11,18 @@ if (!session.user) {
 }
 
 const newsItems = isSupabaseConfigured() ? await listAdminNews() : [];
+const deleted = Astro.url.searchParams.get("deleted");
+const deleteError = Astro.url.searchParams.get("error");
 ---
 
 <AdminLayout title="Noticias" userEmail={session.user.email ?? undefined}>
   <section class="rounded-[28px] border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
+    {deleted && (
+      <div class="mb-4 rounded-2xl border border-emerald-400/25 bg-emerald-400/10 p-4 text-sm text-emerald-100">La noticia se elimino correctamente.</div>
+    )}
+    {deleteError === "delete" && (
+      <div class="mb-4 rounded-2xl border border-red-400/25 bg-red-400/10 p-4 text-sm text-red-100">No se pudo eliminar la noticia.</div>
+    )}
     {newsItems.length === 0 ? (
       <div class="rounded-[22px] border border-dashed border-white/15 bg-[#06172f] p-8 text-center">
         <h2 class="font-newsreader text-2xl text-white">Aun no hay noticias en Supabase</h2>
@@ -29,7 +37,16 @@ const newsItems = isSupabaseConfigured() ? await listAdminNews() : [];
         </a>
       </div>
     ) : (
-      <div class="overflow-hidden rounded-[22px] border border-white/10">
+      <div class="space-y-4">
+        <div class="flex flex-wrap items-center justify-end gap-3">
+          <a
+            href="/admin/noticias/nueva"
+            class="inline-flex rounded-full bg-[#a62b2b] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#8f2424]"
+          >
+            Nueva noticia
+          </a>
+        </div>
+        <div class="overflow-hidden rounded-[22px] border border-white/10">
         <table class="min-w-full divide-y divide-white/10 text-left">
           <thead class="bg-white/5 text-xs uppercase tracking-[0.18em] text-white/60">
             <tr>
@@ -37,7 +54,7 @@ const newsItems = isSupabaseConfigured() ? await listAdminNews() : [];
               <th class="px-5 py-4">Categoria</th>
               <th class="px-5 py-4">Estado</th>
               <th class="px-5 py-4">Publicacion</th>
-              <th class="px-5 py-4">Accion</th>
+              <th class="px-5 py-4">Acciones</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-white/10 bg-[#06172f]">
@@ -55,17 +72,30 @@ const newsItems = isSupabaseConfigured() ? await listAdminNews() : [];
                 </td>
                 <td class="px-5 py-4 text-sm text-white/75">{new Date(item.published_at).toLocaleString("es-CO")}</td>
                 <td class="px-5 py-4">
-                  <a
-                    href={`/admin/noticias/${item.id}`}
-                    class="rounded-full border border-white/15 px-4 py-2 text-sm text-white/85 transition-colors hover:bg-white/10"
-                  >
-                    Editar
-                  </a>
+                  <div class="flex flex-wrap gap-2">
+                    <a
+                      href={`/admin/noticias/${item.id}`}
+                      class="rounded-full border border-white/15 px-4 py-2 text-sm text-white/85 transition-colors hover:bg-white/10"
+                    >
+                      Editar
+                    </a>
+                    <form method="POST" action="/api/admin/news/delete" class="inline">
+                      <input type="hidden" name="id" value={item.id} />
+                      <button
+                        type="submit"
+                        class="rounded-full border border-red-400/35 px-4 py-2 text-sm text-red-200 transition-colors hover:bg-red-400/10"
+                        onclick="return confirm('Eliminar esta noticia de forma permanente? Se borraran tambien los archivos en Storage.');"
+                      >
+                        Eliminar
+                      </button>
+                    </form>
+                  </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     )}
   </section>

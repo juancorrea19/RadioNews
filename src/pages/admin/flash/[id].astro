@@ -1,0 +1,139 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { getAuthenticatedAdmin } from "../../../lib/server/admin-auth";
+import { flashArticleHref } from "../../../lib/site-content";
+import { getAdminFlashSlideById } from "../../../lib/server/site-cms";
+import { isSupabaseConfigured } from "../../../lib/server/supabase";
+
+const session = await getAuthenticatedAdmin(Astro.cookies);
+
+if (!session.user) {
+  return Astro.redirect("/admin/login");
+}
+
+if (!isSupabaseConfigured()) {
+  return Astro.redirect("/admin/login?error=config");
+}
+
+const id = Astro.params.id;
+
+if (!id) {
+  throw new Error("Falta el id de la diapositiva.");
+}
+
+const slide = await getAdminFlashSlideById(id);
+
+if (!slide) {
+  throw new Error("Diapositiva no encontrada.");
+}
+
+const errorRaw = Astro.url.searchParams.get("error");
+const error = errorRaw ? decodeURIComponent(errorRaw.replace(/\+/g, " ")) : "";
+const saved = Astro.url.searchParams.get("saved");
+---
+
+<AdminLayout title="Editar flash" userEmail={session.user.email ?? undefined}>
+  <section class="rounded-[28px] border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+    {error ? (
+      <div class="mb-6 rounded-2xl border border-red-400/25 bg-red-400/10 p-4 text-sm text-red-100">{error}</div>
+    ) : null}
+    {saved && (
+      <div class="mb-6 rounded-2xl border border-emerald-400/25 bg-emerald-400/10 p-4 text-sm text-emerald-100">Guardado correctamente.</div>
+    )}
+
+    {slide.status === "published" && slide.image_url && (
+      <div class="mb-6 rounded-2xl border border-white/10 bg-[#06172f] p-4 text-sm text-white/80">
+        <span class="text-white/55">Pagina publica:</span>{" "}
+        <a
+          href={flashArticleHref(slide.id)}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="font-semibold text-emerald-200 underline-offset-2 hover:underline"
+        >
+          {flashArticleHref(slide.id)}
+        </a>
+      </div>
+    )}
+
+    <form method="POST" action="/api/admin/flash/save" enctype="multipart/form-data" class="grid gap-6 lg:grid-cols-2">
+      <input type="hidden" name="id" value={slide.id} />
+      <input type="hidden" name="existingImageUrl" value={slide.image_url ?? ""} />
+      <input type="hidden" name="existingImagePath" value={slide.image_path ?? ""} />
+
+      <label class="block">
+        <span class="mb-2 block text-sm text-white/75">Categoria</span>
+        <input
+          type="text"
+          name="category"
+          value={slide.category}
+          required
+          class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]"
+        />
+      </label>
+
+      <label class="block">
+        <span class="mb-2 block text-sm text-white/75">Orden</span>
+        <input
+          type="number"
+          name="sortOrder"
+          value={slide.sort_order}
+          class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]"
+        />
+      </label>
+
+      <label class="block lg:col-span-2">
+        <span class="mb-2 block text-sm text-white/75">Titulo</span>
+        <input
+          type="text"
+          name="title"
+          value={slide.title}
+          required
+          class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]"
+        />
+      </label>
+
+      <label class="block lg:col-span-2">
+        <span class="mb-2 block text-sm text-white/75">Texto</span>
+        <textarea name="body" rows="8" required class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]">{slide.body}</textarea>
+      </label>
+
+      <label class="block">
+        <span class="mb-2 block text-sm text-white/75">Fecha en linea</span>
+        <input
+          type="text"
+          name="dateLine"
+          value={slide.date_line}
+          required
+          class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]"
+        />
+      </label>
+
+      <label class="block">
+        <span class="mb-2 block text-sm text-white/75">Estado</span>
+        <select name="status" class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]">
+          <option value="draft" selected={slide.status === "draft"}>Borrador</option>
+          <option value="published" selected={slide.status === "published"}>Publicado</option>
+        </select>
+      </label>
+
+      <label class="block lg:col-span-2">
+        <span class="mb-2 block text-sm text-white/75">Cambiar imagen (opcional)</span>
+        <input
+          type="file"
+          name="image"
+          accept="image/*"
+          class="block w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-sm text-white/80 file:mr-4 file:rounded-full file:border-0 file:bg-[#a62b2b] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
+        />
+        {slide.image_url && (
+          <img src={slide.image_url} alt="" class="mt-4 h-40 w-full max-w-md rounded-2xl object-cover" />
+        )}
+      </label>
+
+      <div class="flex justify-end lg:col-span-2">
+        <button type="submit" class="rounded-full bg-[#a62b2b] px-6 py-3 font-semibold text-white transition-colors hover:bg-[#8f2424]">
+          Guardar cambios
+        </button>
+      </div>
+    </form>
+  </section>
+</AdminLayout>

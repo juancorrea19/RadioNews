@@ -1,3 +1,7 @@
+/**
+ * Reproductor fijo inferior. No se muestra mientras `SHOW_RADIO_PLAYER` sea false
+ * en `src/lib/site-features.ts` (o `PUBLIC_SHOW_RADIO_PLAYER=true` en .env).
+ */
 import React, { useState, useEffect, useRef } from 'react';
 
 export default function RadioPlayer() {

@@ -1,15 +1,18 @@
 ---
-import Background from '../assets/Background.svg';
+import { SHOW_RADIO_PLAYER } from '../lib/site-features';
+
+const logoSrc = '/logo-radio-news.png';
+const footerBottomSpacing = SHOW_RADIO_PLAYER ? 'mb-20' : 'mb-0';
 ---
 
-<footer class="w-full bg-smoke mt-10 border-t border-white/20 shadow-[0_-10px_10px_-5px_rgba(255,255,255,0.4)] pb-0 relative z-1 mb-20">
+<footer class={`w-full bg-smoke mt-10 border-t border-white/20 shadow-[0_-10px_10px_-5px_rgba(255,255,255,0.4)] pb-0 relative z-1 ${footerBottomSpacing}`}>
   <div class="max-w-[1440px] mx-auto px-4 pt-10 pb-8">
     
     <div class="grid grid-cols-1 md:grid-cols-3 gap-10 items-start">
       
       <div class="flex flex-col items-center md:items-start space-y-4">
         <div class="flex flex-col items-center md:items-start">
-          <img src={Background.src} alt="Radio News Online Logo" class="w-16 h-16 object-contain mb-2" />
+          <img src={logoSrc} alt="Radio News Online Logo" class="mb-2 h-16 w-16 rounded-full object-cover shadow-md ring-2 ring-[#a62b2b]/15" />
           <h2 class="text-xl sm:text-2xl font-newsreader font-semibold text-[#1a2332] tracking-wider">
             RADIO NEWS ONLINE
           </h2>
@@ -39,11 +42,6 @@ import Background from '../assets/Background.svg';
               <li>
                 <a href="/quienes-somos" class="hover:text-[#a62b2b] transition-colors flex items-center gap-2">
                   <span class="text-[#a62b2b]">●</span> Quiénes somos
-                </a>
-              </li>
-              <li>
-                <a href="/valores" class="hover:text-[#a62b2b] transition-colors flex items-center gap-2">
-                  <span class="text-[#a62b2b]">●</span> Valores
                 </a>
               </li>
               <li>
@@ -81,6 +79,17 @@ import Background from '../assets/Background.svg';
   <div class="w-full border-t border-gray-300 py-4 bg-white/40">
     <p class="text-center text-sm font-semibold text-[#1a2332] m-0">
       © 2026 Radio News Online. Todos los derechos reservados.
+    </p>
+    <p class="mt-2 text-center text-[11px] leading-relaxed text-gray-500 m-0">
+      Sitio web de autoría de J. Correa Florez.
+      <span class="mx-1 text-gray-400" aria-hidden="true">·</span>
+      Páginas web:
+      <a
+        href="mailto:Jcorreaflorez16@gmail.com"
+        class="text-gray-600 underline-offset-2 transition-colors hover:text-[#a62b2b] hover:underline"
+      >
+        Jcorreaflorez16@gmail.com
+      </a>
     </p>
   </div>
 </footer>

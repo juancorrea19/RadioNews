@@ -2,6 +2,7 @@
 import AdminLayout from "../../../layouts/AdminLayout.astro";
 import { NEWS_CATEGORY_OPTIONS } from "../../../lib/news-categories";
 import { getAuthenticatedAdmin } from "../../../lib/server/admin-auth";
+import NewsCoverFields from "../../../components/admin/NewsCoverFields.astro";
 import { formatDatetimeLocal, getAdminNewsById } from "../../../lib/server/news-admin";
 
 const session = await getAuthenticatedAdmin(Astro.cookies);
@@ -40,11 +41,8 @@ const saved = Astro.url.searchParams.get("saved");
       </div>
     )}
 
-    <form method="POST" action="/api/admin/news/save" enctype="multipart/form-data" class="grid gap-6 lg:grid-cols-2">
+    <form id="edit-noticia-form" method="POST" action="/api/admin/news/save" enctype="multipart/form-data" class="grid gap-6 lg:grid-cols-2">
       <input type="hidden" name="id" value={article.id} />
-      <input type="hidden" name="existingCoverImageUrl" value={article.cover_image_url ?? ""} />
-      <input type="hidden" name="existingCoverImagePath" value={article.cover_image_path ?? ""} />
-
       <label class="block">
         <span class="mb-2 block text-sm text-white/75">Titulo</span>
         <input type="text" name="title" value={article.title} required class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]" />
@@ -82,13 +80,7 @@ const saved = Astro.url.searchParams.get("saved");
         </select>
       </label>
 
-      <label class="block">
-        <span class="mb-2 block text-sm text-white/75">Cambiar imagen principal</span>
-        <input type="file" name="coverImage" accept="image/*" class="block w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-sm text-white/80 file:mr-4 file:rounded-full file:border-0 file:bg-[#a62b2b] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" />
-        {article.cover_image_url && (
-          <img src={article.cover_image_url} alt={article.title} class="mt-4 h-40 w-full rounded-2xl object-cover" />
-        )}
-      </label>
+      <NewsCoverFields article={article} />
 
       <label class="block lg:col-span-2">
         <span class="mb-2 block text-sm text-white/75">Articulo completo</span>
@@ -101,5 +93,19 @@ const saved = Astro.url.searchParams.get("saved");
         </button>
       </div>
     </form>
+
+    <div class="mt-8 border-t border-white/10 pt-6">
+      <p class="mb-3 text-sm text-white/60">Zona de peligro</p>
+      <form method="POST" action="/api/admin/news/delete">
+        <input type="hidden" name="id" value={article.id} />
+        <button
+          type="submit"
+          class="rounded-full border border-red-400/40 px-6 py-3 text-sm font-semibold text-red-200 transition-colors hover:bg-red-400/10"
+          onclick="return confirm('Eliminar esta noticia permanentemente? Esta accion no se puede deshacer.');"
+        >
+          Eliminar noticia
+        </button>
+      </form>
+    </div>
   </section>
 </AdminLayout>

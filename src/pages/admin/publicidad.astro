@@ -1,0 +1,150 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import { adSlots as defaultAds } from "../../data/ads";
+import { getAuthenticatedAdmin } from "../../lib/server/admin-auth";
+import { AD_SLOT_KEYS, listAdSlotRows, type AdSlotKey, type AdSlotRecord } from "../../lib/server/site-cms";
+import { isSupabaseConfigured } from "../../lib/server/supabase";
+
+const session = await getAuthenticatedAdmin(Astro.cookies);
+
+if (!session.user) {
+  return Astro.redirect("/admin/login");
+}
+
+if (!isSupabaseConfigured()) {
+  return Astro.redirect("/admin/login?error=config");
+}
+
+let rows: AdSlotRecord[] = [];
+if (isSupabaseConfigured()) {
+  try {
+    rows = await listAdSlotRows();
+  } catch {
+    rows = [];
+  }
+}
+const byKey = new Map(rows.map((r) => [r.slot_key, r]));
+
+const SLOT_TITLES: Record<AdSlotKey, string> = {
+  indexTop: "Portada — banner superior (leaderboard)",
+  indexMid: "Portada — bloque promocional medio",
+  articleInline: "Articulo — banner dentro del texto",
+  articleSidebar: "Articulo — espacio lateral",
+};
+
+const slotForms = AD_SLOT_KEYS.map((key) => {
+  const row = byKey.get(key);
+  const d = defaultAds[key];
+  return {
+    key,
+    hasDbRow: Boolean(row),
+    sectionTitle: SLOT_TITLES[key],
+    label: row?.label ?? d.label,
+    title: row?.title ?? d.title,
+    description: row?.description ?? d.description,
+    href: row?.href ?? d.href ?? "",
+    alt: row?.alt ?? d.alt ?? "",
+    cta: row?.cta ?? d.cta ?? "",
+    imageUrl: row?.image_url ?? "",
+    imagePath: row?.image_path ?? "",
+  };
+});
+
+const errorParam = Astro.url.searchParams.get("error");
+const saved = Astro.url.searchParams.get("saved");
+const savedSlot = Astro.url.searchParams.get("slot");
+const errorMessage = errorParam ? decodeURIComponent(errorParam.replace(/\+/g, " ")) : "";
+const savedTitle = savedSlot ? SLOT_TITLES[savedSlot as AdSlotKey] ?? savedSlot : "";
+const cleared = Astro.url.searchParams.get("cleared");
+---
+
+<AdminLayout title="Publicidad" userEmail={session.user.email ?? undefined}>
+  <section class="space-y-8">
+    {errorMessage && errorParam !== "slot" && (
+      <div class="rounded-2xl border border-red-400/25 bg-red-400/10 p-4 text-sm text-red-100">{errorMessage}</div>
+    )}
+    {saved && savedSlot && (
+      <div class="rounded-2xl border border-emerald-400/25 bg-emerald-400/10 p-4 text-sm text-emerald-100">
+        Banner guardado: {savedTitle}
+      </div>
+    )}
+    {cleared && savedSlot && (
+      <div class="rounded-2xl border border-emerald-400/25 bg-emerald-400/10 p-4 text-sm text-emerald-100">
+        Personalizacion eliminada. La web volvera a usar el texto por defecto para: {SLOT_TITLES[savedSlot as AdSlotKey] ?? savedSlot}
+      </div>
+    )}
+
+    {slotForms.map((s) => (
+      <div class="rounded-[28px] border border-white/10 bg-white/5 p-6 backdrop-blur-sm" id={`slot-${s.key}`}>
+        <h2 class="font-newsreader text-2xl text-white">{s.sectionTitle}</h2>
+        <p class="mt-1 text-xs uppercase tracking-[0.18em] text-white/45">Clave tecnica: {s.key}</p>
+
+        {s.hasDbRow && (
+          <form method="POST" action="/api/admin/ads/delete" class="mt-4">
+            <input type="hidden" name="slotKey" value={s.key} />
+            <button
+              type="submit"
+              class="rounded-full border border-red-400/35 px-4 py-2 text-sm font-semibold text-red-200 transition-colors hover:bg-red-400/10"
+              onclick="return confirm('Quitar la personalizacion de este espacio? La web usara otra vez los textos por defecto del sitio y se borrara la imagen subida.');"
+            >
+              Restaurar valores por defecto
+            </button>
+          </form>
+        )}
+
+        <form method="POST" action="/api/admin/ads/save" enctype="multipart/form-data" class="mt-6 grid gap-5 lg:grid-cols-2">
+          <input type="hidden" name="slotKey" value={s.key} />
+          <input type="hidden" name="existingImageUrl" value={s.imageUrl} />
+          <input type="hidden" name="existingImagePath" value={s.imagePath} />
+
+          <label class="block">
+            <span class="mb-2 block text-sm text-white/75">Etiqueta</span>
+            <input type="text" name="label" value={s.label} required class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]" />
+          </label>
+
+          <label class="block">
+            <span class="mb-2 block text-sm text-white/75">Titulo del bloque</span>
+            <input type="text" name="title" value={s.title} required class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]" />
+          </label>
+
+          <label class="block lg:col-span-2">
+            <span class="mb-2 block text-sm text-white/75">Descripcion</span>
+            <textarea name="description" rows="3" class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]">{s.description}</textarea>
+          </label>
+
+          <label class="block">
+            <span class="mb-2 block text-sm text-white/75">Enlace (URL, opcional)</span>
+            <input type="text" name="href" value={s.href} placeholder="https://..." class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]" />
+          </label>
+
+          <label class="block">
+            <span class="mb-2 block text-sm text-white/75">Texto CTA</span>
+            <input type="text" name="cta" value={s.cta} class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]" />
+          </label>
+
+          <label class="block lg:col-span-2">
+            <span class="mb-2 block text-sm text-white/75">Texto alternativo imagen</span>
+            <input type="text" name="alt" value={s.alt} class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]" />
+          </label>
+
+          <label class="block lg:col-span-2">
+            <span class="mb-2 block text-sm text-white/75">Imagen creativa (opcional)</span>
+            <input
+              type="file"
+              name="image"
+              accept="image/*"
+              class="block w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-sm text-white/80 file:mr-4 file:rounded-full file:border-0 file:bg-[#a62b2b] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
+            />
+            {s.imageUrl ? <img src={s.imageUrl} alt="" class="mt-4 h-32 w-full max-w-lg rounded-2xl object-cover" /> : null}
+          </label>
+
+          <div class="flex justify-end lg:col-span-2">
+            <button type="submit" class="rounded-full bg-[#a62b2b] px-6 py-3 font-semibold text-white transition-colors hover:bg-[#8f2424]">
+              Guardar este espacio
+            </button>
+          </div>
+        </form>
+      </div>
+    ))}
+  </section>
+</AdminLayout>

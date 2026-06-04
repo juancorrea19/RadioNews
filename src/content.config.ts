@@ -8,6 +8,9 @@ const newsCollection = defineCollection({
     title: z.string(),
     category: z.enum([
       "ultima-hora",
+      "lo-ultimo",
+      "judicial",
+      "actualidad",
       "internacional",
       "nacion",
       "entretenimiento",

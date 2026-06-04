@@ -1,0 +1,66 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { getAuthenticatedAdmin } from "../../../lib/server/admin-auth";
+import { listRegistroColaboradoresForAdmin } from "../../../lib/server/registro-colaboradores";
+import { isSupabaseConfigured } from "../../../lib/server/supabase";
+
+const session = await getAuthenticatedAdmin(Astro.cookies);
+
+if (!session.user) {
+  return Astro.redirect("/admin/login");
+}
+
+if (!isSupabaseConfigured()) {
+  return Astro.redirect("/admin/login?error=config");
+}
+
+let rows: Awaited<ReturnType<typeof listRegistroColaboradoresForAdmin>> = [];
+try {
+  rows = await listRegistroColaboradoresForAdmin();
+} catch {
+  rows = [];
+}
+---
+
+<AdminLayout title="Registros colaboradores" userEmail={session.user.email ?? undefined}>
+  <section class="rounded-[28px] border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
+    <p class="mb-6 text-sm text-white/70">Solicitudes enviadas desde el modal de registro en la web (tabla registro_colaboradores).</p>
+
+    {rows.length === 0 ? (
+      <div class="rounded-[22px] border border-dashed border-white/15 bg-[#06172f] p-8 text-center text-white/75">
+        Aun no hay registros. Ejecuta <code class="text-white/90">supabase/registros_setup.sql</code> si la tabla no existe.
+      </div>
+    ) : (
+      <div class="overflow-x-auto overflow-hidden rounded-[22px] border border-white/10">
+        <table class="min-w-full divide-y divide-white/10 text-left text-sm">
+          <thead class="bg-white/5 text-xs uppercase tracking-[0.18em] text-white/60">
+            <tr>
+              <th class="px-4 py-3">Fecha</th>
+              <th class="px-4 py-3">Nombre</th>
+              <th class="px-4 py-3">Correo</th>
+              <th class="px-4 py-3">Telefono</th>
+              <th class="px-4 py-3">Interes</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/10 bg-[#06172f]">
+            {rows.map((r) => (
+              <tr>
+                <td class="whitespace-nowrap px-4 py-3 text-white/80">{new Date(r.created_at).toLocaleString("es-CO")}</td>
+                <td class="max-w-[140px] truncate px-4 py-3 text-white" title={r.nombre}>
+                  {r.nombre}
+                </td>
+                <td class="max-w-[180px] truncate px-4 py-3 text-white/85" title={r.correo}>
+                  {r.correo}
+                </td>
+                <td class="max-w-[120px] truncate px-4 py-3 text-white/75">{r.telefono}</td>
+                <td class="max-w-[160px] truncate px-4 py-3 text-white/80" title={r.interes}>
+                  {r.interes}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+  </section>
+</AdminLayout>

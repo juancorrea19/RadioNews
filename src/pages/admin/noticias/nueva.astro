@@ -1,6 +1,7 @@
 ---
 import AdminLayout from "../../../layouts/AdminLayout.astro";
 import { getAuthenticatedAdmin } from "../../../lib/server/admin-auth";
+import NewsCoverFields from "../../../components/admin/NewsCoverFields.astro";
 import { formatDatetimeLocal } from "../../../lib/server/news-admin";
 import { NEWS_CATEGORY_OPTIONS } from "../../../lib/news-categories";
 
@@ -59,10 +60,7 @@ const error = Astro.url.searchParams.get("error");
         </select>
       </label>
 
-      <label class="block">
-        <span class="mb-2 block text-sm text-white/75">Imagen principal</span>
-        <input type="file" name="coverImage" accept="image/*" required class="block w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-sm text-white/80 file:mr-4 file:rounded-full file:border-0 file:bg-[#a62b2b] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" />
-      </label>
+      <NewsCoverFields isNew />
 
       <label class="block lg:col-span-2">
         <span class="mb-2 block text-sm text-white/75">Articulo completo</span>

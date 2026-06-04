@@ -1,0 +1,121 @@
+---
+import type { NewsArticleRecord } from "../../lib/server/news-admin";
+
+interface Props {
+  article?: NewsArticleRecord | null;
+  isNew?: boolean;
+}
+
+const { article = null, isNew = false } = Astro.props;
+const mediaType = article?.cover_media_type ?? "image";
+---
+
+<input type="hidden" name="existingCoverImageUrl" value={article?.cover_image_url ?? ""} />
+<input type="hidden" name="existingCoverImagePath" value={article?.cover_image_path ?? ""} />
+<input type="hidden" name="existingCoverVideoUrl" value={article?.cover_video_url ?? ""} />
+<input type="hidden" name="existingCoverVideoPath" value={article?.cover_video_path ?? ""} />
+
+<label class="block lg:col-span-2">
+  <span class="mb-2 block text-sm text-white/75">Tipo de portada</span>
+  <select
+    name="coverMediaType"
+    id="coverMediaType"
+    data-is-new={isNew ? "true" : "false"}
+    class="w-full max-w-md rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]"
+  >
+    <option value="image" selected={mediaType === "image"}>Imagen</option>
+    <option value="video" selected={mediaType === "video"}>Video</option>
+  </select>
+</label>
+
+<div id="cover-video-block" class="lg:col-span-2 grid gap-6" hidden={mediaType !== "video"}>
+  <label class="block">
+    <span class="mb-2 block text-sm text-white/75">
+      {isNew ? "Video principal (MP4, WebM o MOV, max. 100 MB)" : "Cambiar video principal"}
+    </span>
+    <input
+      type="file"
+      name="coverVideo"
+      id="coverVideoInput"
+      accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov"
+      required={isNew && mediaType === "video"}
+      class="block w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-sm text-white/80 file:mr-4 file:rounded-full file:border-0 file:bg-[#a62b2b] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
+    />
+    {article?.cover_video_url && mediaType === "video" && (
+      <video
+        src={`/api/news-media?src=${encodeURIComponent(article.cover_video_url)}`}
+        controls
+        playsinline
+        preload="metadata"
+        class="mt-4 max-h-64 w-full max-w-xl rounded-2xl bg-black"
+        poster={article.cover_image_url ?? undefined}
+      />
+    )}
+  </label>
+</div>
+
+<label class="block lg:col-span-2" id="cover-image-label">
+  <span class="mb-2 block text-sm text-white/75" id="cover-image-label-text">
+    {mediaType === "video" ? "Miniatura para listados (opcional)" : isNew ? "Imagen principal" : "Cambiar imagen principal"}
+  </span>
+  <input
+    type="file"
+    name="coverImage"
+    id="coverImageInput"
+    accept="image/*"
+    required={isNew && mediaType === "image"}
+    class="block w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-sm text-white/80 file:mr-4 file:rounded-full file:border-0 file:bg-[#a62b2b] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
+  />
+  {article?.cover_image_url && (
+    <img src={article.cover_image_url} alt={article.title} class="mt-4 h-40 w-full max-w-xl rounded-2xl object-cover" />
+  )}
+  <p id="cover-image-hint" class="mt-2 text-xs text-white/50" hidden={mediaType !== "video"}>
+    Si no subes miniatura, en listados se usara un marcador por defecto.
+  </p>
+</label>
+
+<script>
+  function syncCoverFields() {
+    const select = document.getElementById("coverMediaType");
+    const videoBlock = document.getElementById("cover-video-block");
+    const imageInput = document.getElementById("coverImageInput");
+    const videoInput = document.getElementById("coverVideoInput");
+    const labelText = document.getElementById("cover-image-label-text");
+    const hint = document.getElementById("cover-image-hint");
+
+    if (
+      !(select instanceof HTMLSelectElement) ||
+      !videoBlock ||
+      !(imageInput instanceof HTMLInputElement) ||
+      !labelText
+    ) {
+      return;
+    }
+
+    const isVideo = select.value === "video";
+    const isNew = select.dataset.isNew === "true";
+
+    videoBlock.hidden = !isVideo;
+    imageInput.required = !isVideo && isNew;
+
+    if (videoInput instanceof HTMLInputElement) {
+      videoInput.required = isVideo && isNew;
+    }
+
+    labelText.textContent = isVideo
+      ? "Miniatura para listados (opcional)"
+      : isNew
+        ? "Imagen principal"
+        : "Cambiar imagen principal";
+
+    if (hint) {
+      hint.hidden = !isVideo;
+    }
+  }
+
+  const select = document.getElementById("coverMediaType");
+  if (select) {
+    select.addEventListener("change", syncCoverFields);
+    syncCoverFields();
+  }
+</script>

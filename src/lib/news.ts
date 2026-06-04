@@ -87,7 +87,7 @@ async function getCmsNews(): Promise<ResolvedNewsItem[]> {
         timeAgo: formatTimeAgo(entry.data.publishedAt),
         headline: entry.data.title,
         excerpt: entry.data.excerpt,
-        content: splitContent(entry.body, entry.data.excerpt),
+        content: splitContent(entry.body ?? "", entry.data.excerpt || ""),
         author: entry.data.author,
         publishedAt: entry.data.publishedAt,
         entry,
@@ -96,16 +96,23 @@ async function getCmsNews(): Promise<ResolvedNewsItem[]> {
     .sort((a, b) => (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0));
 }
 
+const VIDEO_CARD_PLACEHOLDER = "/favicon.png";
+
 function mapSupabaseNews(record: NewsArticleRecord): ResolvedNewsItem {
   const categorySlug = record.category as NewsCategorySlug;
   const meta = NEWS_CATEGORY_META[categorySlug];
   const publishedAt = new Date(record.published_at);
+  const isVideo = Boolean(record.cover_video_url?.trim());
+  const cardImage =
+    record.cover_image_url ?? (isVideo ? VIDEO_CARD_PLACEHOLDER : "/favicon.png");
 
   return {
     id: record.id,
     slug: record.slug,
     href: `/noticia/${categorySlug}/${record.slug}/`,
-    image: record.cover_image_url ?? "/favicon.png",
+    image: cardImage,
+    coverMediaType: isVideo ? "video" : "image",
+    videoUrl: isVideo ? (record.cover_video_url ?? undefined) : undefined,
     category: meta.title,
     categorySlug,
     timeAgo: formatTimeAgo(publishedAt),

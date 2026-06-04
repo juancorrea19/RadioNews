@@ -1,7 +1,6 @@
 export function initFlashCarousel(): void {
   const root = document.getElementById('flash-carousel');
   if (!root || root.dataset.carouselInit === '1') return;
-  root.dataset.carouselInit = '1';
 
   const trackEl = root.querySelector('.carousel-track');
   const prev = root.querySelector('.carousel-prev');
@@ -10,6 +9,8 @@ export function initFlashCarousel(): void {
 
   if (!(trackEl instanceof HTMLElement)) return;
   const track = trackEl;
+
+  root.dataset.carouselInit = '1';
 
   const getSlideCount = () => track.querySelectorAll('article[data-slide-index]').length;
 

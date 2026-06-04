@@ -14,6 +14,16 @@ function imgSrc(image: NewsItem['image']): string {
   return typeof image === 'string' ? image : image.src
 }
 
+function VideoBadge() {
+  return (
+    <span className="absolute inset-0 flex items-center justify-center bg-[#041d3d]/40">
+      <span className="rounded-full bg-white/95 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.2em] text-[#041d3d]">
+        Video
+      </span>
+    </span>
+  )
+}
+
 function ArticleLink({
   item,
   className = '',
@@ -36,6 +46,7 @@ function CardHorizontal({ item }: { item: NewsItem }) {
             alt={item.headline}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
+          {item.coverMediaType === 'video' && <VideoBadge />}
           <img src={Logo.src} alt="Radio News" className="absolute top-1 right-1 w-7 h-7 object-contain" />
         </div>
         <div className="flex flex-col gap-1 min-w-0">
@@ -60,6 +71,7 @@ function CardVertical({ item, large = false }: { item: NewsItem; large?: boolean
             alt={item.headline}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
+          {item.coverMediaType === 'video' && <VideoBadge />}
           <img src={Logo.src} alt="Radio News" className="absolute top-2 right-2 w-10 h-10 object-contain" />
         </div>
         <div className="flex flex-col gap-1 p-4">
@@ -107,7 +119,7 @@ function CardOverlay({
           <h3 className="font-newsreader font-bold text-white leading-snug text-[18px] md:text-[17px]">
             {item.headline}
           </h3>
-          <span className="text-[15px] text-white/60">{item.timeAgo}</span>
+          <span className="text-[15px] text-white">{item.timeAgo}</span>
         </div>
       </article>
     </ArticleLink>
@@ -259,7 +271,7 @@ function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) 
                 >
                   {cover.category}
                 </span>
-                <span className="text-[10px] text-white/45 font-newsreader italic">{cover.timeAgo}</span>
+                <span className="text-[10px] text-white font-newsreader italic">{cover.timeAgo}</span>
               </div>
               <div className="absolute bottom-0 left-0 right-0 p-5">
                 <div className="w-8 h-[2px] mb-3 rounded-full" style={{ background: accent }} />
@@ -270,7 +282,7 @@ function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) 
                   {cover.headline}
                 </h2>
                 {cover.excerpt && (
-                  <p className="text-white/55 font-newsreader text-[13px] leading-relaxed line-clamp-2">{cover.excerpt}</p>
+                  <p className="text-white font-newsreader text-[13px] leading-relaxed line-clamp-2">{cover.excerpt}</p>
                 )}
                 <div className="mt-3 flex items-center gap-2">
                   <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: accent }}>
@@ -332,7 +344,7 @@ function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) 
             style={{ background: `${accent}20`, borderTop: `1px solid ${accent}20`, borderBottom: `1px solid ${accent}40` }}
           >
             <div className="w-1 h-3 rounded-full shrink-0" style={{ background: accent }} />
-            <span className="text-[15px] uppercase tracking-[0.18em] font-bold text-white/80">También en esta edición</span>
+            <span className="text-[15px] uppercase tracking-[0.18em] font-bold text-white">También en esta edición</span>
           </div>
 
           <div className="flex flex-col overflow-hidden" style={{ flex: 1 }}>
@@ -356,10 +368,10 @@ function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) 
                   style={{ background: accent, color: '#fff' }}>
                         {item.category}
                       </span>
-                      <h4 className="text-[16px] font-newsreader font-semibold text-white/75 leading-snug line-clamp-2 group-hover:text-white transition-colors">
+                      <h4 className="text-[16px] font-newsreader font-semibold text-white leading-snug line-clamp-2 group-hover:text-white transition-colors">
                         {item.headline}
                       </h4>
-                      <span className="text-[12px] text-white/60">{item.timeAgo}</span>
+                      <span className="text-[12px] text-white">{item.timeAgo}</span>
                     </div>
                   </ArticleLink>
                 ) : (
@@ -375,7 +387,7 @@ function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) 
             <span className="text-[9px] uppercase tracking-[0.25em] font-bold" style={{ color: accent }}>
               Índice
             </span>
-            <span className="text-[9px] text-white/25 uppercase tracking-widest">
+            <span className="text-[9px] text-white uppercase tracking-widest">
               {current + 1}/{total}
             </span>
           </div>
@@ -419,7 +431,7 @@ function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) 
                   style={{ background: accent, color: '#fff' }}>
                         {item.category}
                       </span>
-                      <h4 className="text-[18px] font-newsreader text-white/80 leading-snug line-clamp-3 group-hover:text-white transition-colors">
+                      <h4 className="text-[18px] font-newsreader text-white leading-snug line-clamp-3 group-hover:text-white transition-colors">
                         {item.headline}
                       </h4>
                     </div>
@@ -438,7 +450,7 @@ function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) 
           </div>
 
           <div className="px-4 py-2 shrink-0 flex items-center justify-between" style={{ borderTop: `1px solid ${accent}15` }}>
-            <span className="text-[15px] text-white/50 uppercase tracking-widest font-newsreader italic">{news.length} notas</span>
+            <span className="text-[15px] text-white uppercase tracking-widest font-newsreader italic">{news.length} notas</span>
             <span className="text-[15px] font-bold" style={{ color: `${accent}50` }}>
               ◆
             </span>
@@ -468,7 +480,7 @@ function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) 
               <a
                 key={`${item.slug}-${index}`}
                 href={item.href}
-                className="inline-flex items-center gap-2 text-[16px] shrink-0 text-white/60 cursor-pointer hover:text-white/75 transition-colors duration-200 font-newsreader italic"
+                className="inline-flex items-center gap-2 text-[16px] shrink-0 text-white cursor-pointer hover:text-white transition-colors duration-200 font-newsreader italic"
               >
                 <span
                   className="not-italic"
@@ -549,15 +561,14 @@ function SectionDivider({ title, accent }: { title: string; accent: string }) {
         <div className="w-[3px] h-10 rounded-full" style={{ backgroundColor: accent }} />
         <div className="flex flex-col">
           <h2 className="text-2xl md:text-3xl font-newsreader font-semibold text-[#f0f0f0] leading-tight">{title}</h2>
-          <span className="text-[11px] md:text-[13px] uppercase tracking-[0.15em] font-medium text-gray-400 -mt-1">
+          <span className="text-[11px] md:text-[13px] uppercase tracking-[0.15em] font-medium text-white -mt-1">
             La noticia a un click
           </span>
         </div>
       </div>
       <a
         href="#"
-        className="text-[11px] uppercase tracking-widest font-semibold px-3 py-1.5 rounded-full border transition-colors duration-200 hover:text-white"
-        style={{ borderColor: `${accent}60`, color: accent }}
+        className="text-[11px] uppercase tracking-widest font-semibold px-3 py-1.5 rounded-full border border-[#a62b2b] bg-[#a62b2b] text-white transition-colors duration-200 hover:bg-[#8a2424] hover:border-[#8a2424]"
       >
         Ver todo →
       </a>

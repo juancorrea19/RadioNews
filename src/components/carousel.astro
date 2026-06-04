@@ -1,145 +1,129 @@
 ---
-import carousel1 from '../../assets/carousel1.webp';
-import carousel2 from '../../assets/carousel2.webp';
-import carousel3 from '../../assets/carousel3.webp';
+import type { FlashCarouselSlide } from "../lib/site-content";
 
-const slides =[
-  {
-    categoria: 'Nación',
-    titulo:
-      'Resultados de la encuesta del CNC: Cepeda 34,5 %, Paloma 22,2 %, De la Espriella 15,4 %',
-    texto:
-      'Este domingo 22 de marzo se conoció la encuesta del Centro Nacional de Consultoría para la revista Cambio. El sondeo entrega un nuevo panorama luego de las consultas interpartidistas y la definición de las fórmulas vicepresidenciales, con las que cada candidato definió el tono y la estrategia en la carrera por la presidencia. La base de la encuesta corresponde a 2.157 entrevistados.',
-    fechaLinea: '23 Marzo, 2026.',
-    imagen: carousel1,
-    imagenAlt: 'Ilustración noticia encuesta CNC',
-  },
-  {
-    categoria: 'Internacional',
-    titulo: 'Agenda global: cumbre climática y mercados atentos a las tasas',
-    texto:
-      'Los mercados internacionales siguen la agenda de bancos centrales y los compromisos de la última ronda de negociaciones multilaterales. Los analistas destacan la volatilidad cambiaria y el impacto en economías emergentes durante el trimestre.',
-    fechaLinea: '22 Marzo, 2026.',
-    imagen: carousel2,
-    imagenAlt: 'Contexto internacional',
-  },
-  {
-    categoria: 'Deportes',
-    titulo: 'Liga nacional: clásicos regionales definen la tabla de posiciones',
-    texto:
-      'El fin de semana dejó resultados clave para la clasificación. Entrenadores rotaron planteles pensando en la copa y las lesiones marcaron la previa de los duelos decisivos.',
-    fechaLinea: '21 Marzo, 2026.',
-    imagen: carousel3,
-    imagenAlt: 'Acción deportiva',
-  },
-];
+interface Props {
+  slides: FlashCarouselSlide[];
+}
+
+const { slides } = Astro.props;
 ---
 
-<div
-  id="flash-carousel"
-  class="relative max-w-7xl mx-auto w-full flex items-stretch md:items-center gap-2 md:gap-4 px-4 mt-6 z-10"
->
-  <!-- Flecha Izquierda -->
-  <button
-    type="button"
-    class="carousel-prev hidden lg:flex shrink-0 items-center justify-center p-4 hover:bg-white/10 rounded-full transition-all self-center text-white"
-    aria-label="Anterior noticia"
-  >
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="M18 4L8 14L18 24" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
-    </svg>
-  </button>
+{
+  slides.length === 0 ? (
+    <div class="relative z-10 mx-auto mt-6 max-w-7xl rounded-[2rem] border border-dashed border-white/20 bg-white/5 px-6 py-16 text-center backdrop-blur-sm">
+      <p class="font-newsreader text-lg text-white md:text-xl">
+        Pronto veras aqui el flash informativo. Publica diapositivas desde el panel de administracion.
+      </p>
+    </div>
+  ) : (
+    <div
+      id="flash-carousel"
+      class="relative z-10 mx-auto mt-6 flex w-full max-w-7xl items-stretch gap-2 px-4 md:items-center md:gap-4"
+    >
+      <button
+        type="button"
+        class="carousel-prev hidden shrink-0 items-center justify-center self-center rounded-full p-4 text-white transition-all hover:bg-white/10 lg:flex"
+        aria-label="Anterior noticia"
+      >
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M18 4L8 14L18 24" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
 
-  <div class="flex-1 z-10 min-w-0 px-0 md:px-2">
-    <section class="w-full">
-      <div class="w-full mx-auto flex flex-col">
-        
-        <div aria-roledescription="carrusel">
-          <!-- ⚠️ AQUÍ ESTÁ LA CLAVE DEL ESPACIO: pb-40 md:pb-32 le da espacio a la caja para caer sin cortarse -->
-          <div
-            class="carousel-track flex w-full overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide gap-6 pb-40 md:pb-32 pt-4"
-            tabindex="0"
-          >
-            {
-              slides.map((slide, i) => (
-                <!-- El article ya NO tiene overflow-hidden -->
-                <article
-                  class="relative min-w-0 w-full shrink-0 snap-center snap-always basis-full"
-                  aria-label={`Noticia ${i + 1} de ${slides.length}`}
-                  data-slide-index={i}
-                >
-                  <!-- 1. CONTENEDOR EXCLUSIVO PARA LA IMAGEN (Aquí van los bordes y el overflow-hidden) -->
-                  <div class="relative w-full aspect-square sm:aspect-video md:aspect-[21/9] rounded-[2rem] overflow-hidden border-[4px] md:border-[6px] border-white/20 shadow-2xl group">
-                    <img
-                      src={slide.imagen.src}
-                      alt={slide.imagenAlt}
-                      class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      loading={i === 0 ? 'eager' : 'lazy'}
-                      decoding="async"
-                    />
-                  </div>
+      <div class="z-10 min-w-0 flex-1 px-0 md:px-2">
+        <section class="w-full">
+          <div class="mx-auto flex w-full flex-col">
+            <div aria-roledescription="carrusel">
+              <div
+                class="carousel-track scrollbar-hide flex w-full snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-40 pt-4 md:pb-32"
+                tabindex="0"
+              >
+                {slides.map((slide, i) => (
+                  <article
+                    class="relative min-w-0 w-full shrink-0 snap-center snap-always basis-full"
+                    aria-label={`Noticia ${i + 1} de ${slides.length}`}
+                    data-slide-index={i}
+                  >
+                    <div class="group relative aspect-square w-full overflow-hidden rounded-[2rem] border-[4px] border-white/20 shadow-2xl sm:aspect-video md:aspect-[21/9] md:border-[6px]">
+                      <img
+                        src={slide.imagenUrl}
+                        alt={slide.imagenAlt}
+                        class="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        loading={i === 0 ? "eager" : "lazy"}
+                        decoding="async"
+                      />
+                    </div>
 
-                  <!-- 2. CAJA DE TEXTO (La magia: bottom-0 y translate-y-1/2) -->
-                  <!-- Hice la caja un poco más angosta (w-[92%]) y la centré (mx-auto left-0 right-0) para que se vea como una tarjeta superpuesta -->
-                  <div class="absolute bottom-0 translate-y-1/2 left-0 right-0 w-[92%] md:w-[85%] mx-auto bg-[#d2d6d9]/95 backdrop-blur-md rounded-2xl p-5 md:p-6 border border-white/40 shadow-2xl flex flex-col justify-end z-20 max-h-[85%] overflow-hidden">
-    
-    <span class="block text-[#a62b2b] font-newsreader font-extrabold text-lg md:text-xl mb-1">
-      {slide.categoria}
-    </span>
-    
-    <h2 class="text-slate-900 font-newsreader font-bold text-xl sm:text-2xl md:text-3xl leading-tight mb-2 md:mb-3 line-clamp-2">
-      {slide.titulo}
-    </h2>
-    
-    <p class="hidden md:block text-slate-900 font-newsreader text-[25px] md:text-lg leading-relaxed mb-3 line-clamp-4  overflow-y-auto">
-      {slide.texto}
-    </p>
-    
-    <p class="text-slate-600 font-inter text-xs md:text-sm font-semibold flex-shrink-0 mt-auto">
-      {slide.fechaLinea}
-    </p>
-    
-</div>
-                </article>
-              ))
-            }
+                    <div class="absolute bottom-0 left-0 right-0 z-20 mx-auto flex w-[92%] translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-white/40 bg-[#d2d6d9]/95 p-4 shadow-2xl backdrop-blur-md md:w-[85%] md:p-5">
+                      <span class="mb-1 block font-newsreader text-lg font-extrabold text-[#a62b2b] md:text-xl">{slide.categoria}</span>
+
+                      <h2 class="mb-2 line-clamp-2 font-newsreader text-xl font-bold leading-tight text-[#0d1218] sm:text-2xl md:text-3xl">
+                        <a
+                          href={slide.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="text-[#0d1218] transition-colors hover:text-[#a62b2b]"
+                        >
+                          {slide.titulo}
+                        </a>
+                      </h2>
+
+                      <p class="mb-3 line-clamp-2 font-newsreader text-base font-medium leading-snug text-[#1a2332] md:text-lg md:leading-relaxed">
+                        {slide.texto}
+                      </p>
+
+                      <div class="flex flex-wrap items-center justify-between gap-2 border-t border-slate-400/50 pt-3">
+                        <p class="font-inter text-xs font-semibold text-[#1a2332] md:text-sm">{slide.fechaLinea}</p>
+                        <a
+                          href={slide.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="inline-flex shrink-0 rounded-full bg-[#a62b2b] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-white transition-colors hover:bg-[#8f2424] md:px-4 md:py-2 md:text-xs"
+                        >
+                          Ver noticia completa
+                        </a>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+
+            <div class="mt-4 flex justify-center gap-2" role="tablist" aria-label="Indicadores del carrusel">
+              {slides.map((_, i) => (
+                <button
+                  type="button"
+                  class="carousel-dot h-2.5 w-2.5 cursor-pointer rounded-full bg-white/30 transition-colors hover:bg-white/50 data-[active=true]:bg-firebrick"
+                  aria-label={`Ir a noticia ${i + 1}`}
+                  aria-current={i === 0 ? "true" : "false"}
+                  data-dot-index={i}
+                />
+              ))}
+            </div>
           </div>
-        </div>
-
-        <!-- Puntos (Dots) Indicadores (Le di un poco de margen top negativo o normal para ajustarlo bajo las cajas) -->
-        <div class="flex justify-center gap-2 mt-4" role="tablist" aria-label="Indicadores del carrusel">
-          {
-            slides.map((_, i) => (
-              <button
-                type="button"
-                class="carousel-dot h-2.5 w-2.5 rounded-full bg-white/30 transition-colors hover:bg-white/50 data-[active=true]:bg-firebrick cursor-pointer"
-                aria-label={`Ir a noticia ${i + 1}`}
-                aria-current={i === 0 ? 'true' : 'false'}
-                data-dot-index={i}
-              />
-            ))
-          }
-        </div>
+        </section>
       </div>
-    </section>
-  </div>
 
-  <!-- Flecha Derecha -->
-  <button
-    type="button"
-    class="carousel-next hidden lg:flex shrink-0 items-center justify-center p-4 hover:bg-white/10 rounded-full transition-all self-center text-white"
-    aria-label="Siguiente noticia"
-  >
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="M10 4L20 14L10 24" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
-    </svg>
-  </button>
-</div>
-</div>
+      <button
+        type="button"
+        class="carousel-next hidden shrink-0 items-center justify-center self-center rounded-full p-4 text-white transition-all hover:bg-white/10 lg:flex"
+        aria-label="Siguiente noticia"
+      >
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M10 4L20 14L10 24" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
+    </div>
+  )
+}
 
-<script>
-  import { initFlashCarousel } from '../scripts/flash-carousel.ts';
+{
+  slides.length > 0 && (
+    <script>
+      import { initFlashCarousel } from "../scripts/flash-carousel.ts";
 
-  initFlashCarousel();
-  document.addEventListener('astro:page-load', initFlashCarousel);
-</script>
+      initFlashCarousel();
+      document.addEventListener("astro:page-load", initFlashCarousel);
+    </script>
+  )
+}

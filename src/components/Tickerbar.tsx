@@ -9,12 +9,21 @@ interface TickerItem {
   icon: string;
 }
 
+/** IDs ocultos en la UI (p. ej. datos rotos); la API puede seguir enviándolos. */
+const TICKER_HIDDEN_IDS = new Set<string>(["colcap"]);
+
 const FALLBACK_ITEMS: TickerItem[] = [
   {
     id: "dolar",
     label: "USD/COP",
     value: "Cargando...",
     icon: "\u{1F4B5}",
+  },
+  {
+    id: "sp500",
+    label: "S&P 500",
+    value: "Cargando...",
+    icon: "\u{1F4CA}",
   },
   {
     id: "clima",
@@ -52,7 +61,7 @@ function LiveClock() {
   }, []);
 
   return (
-    <div className="shrink-0 min-w-[110px] border-l border-white/10 px-5 py-4 text-center font-mono text-[14px] text-white/80">
+    <div className="shrink-0 min-w-[110px] border-l border-white/10 px-5 py-4 text-center font-mono text-[14px] text-white">
       {time || "--:--"}
     </div>
   );
@@ -85,7 +94,7 @@ export default function TickerBar() {
         }
 
         if (!cancelled) {
-          setItems(data);
+          setItems(data.filter((item) => !TICKER_HIDDEN_IDS.has(item.id)));
         }
       } catch (error) {
         console.error("Error cargando el ticker en vivo:", error);
@@ -113,7 +122,9 @@ export default function TickerBar() {
     return <div className="h-14 w-full animate-pulse bg-[#021529]" />;
   }
 
-  const displayItems = items.length > 0 ? [...items, ...items] : [...FALLBACK_ITEMS, ...FALLBACK_ITEMS];
+  const visible =
+    items.length > 0 ? items : FALLBACK_ITEMS.filter((item) => !TICKER_HIDDEN_IDS.has(item.id));
+  const displayItems = visible.length > 0 ? [...visible, ...visible] : [];
 
   return (
     <div className="w-full overflow-hidden border-b border-white/10" style={{ backgroundColor: "#021529" }}>
@@ -131,13 +142,23 @@ export default function TickerBar() {
               <div key={`${item.id}-${i}`} className="flex shrink-0 items-center gap-4 border-r border-white/10 px-8 py-4">
                 <span className="text-[20px]">{item.icon}</span>
                 <div className="flex flex-col justify-center">
-                  <span className="mb-1 text-[11px] font-bold uppercase leading-none tracking-tighter text-white/60">
+                  <span className="mb-1 text-[11px] font-bold uppercase leading-none tracking-tighter text-white">
                     {item.label}
                   </span>
                   <div className="flex items-baseline gap-2">
                     <span className="text-[15px] font-bold leading-none text-white">{item.value}</span>
                     {item.change && (
-                      <span className="text-[12px] font-medium" style={{ color: item.changePositive ? "#4ade80" : "#f87171" }}>
+                      <span
+                        className="text-[12px] font-medium"
+                        style={{
+                          color:
+                            item.changePositive === undefined
+                              ? "rgba(255,255,255,0.72)"
+                              : item.changePositive
+                                ? "#4ade80"
+                                : "#f87171",
+                        }}
+                      >
                         {item.changePositive === undefined ? "" : item.changePositive ? "\u25B2 " : "\u25BC "}
                         {item.change}
                       </span>

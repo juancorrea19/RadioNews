@@ -3,24 +3,13 @@ import Layout from '../../../layouts/Layout.astro';
 import Header from '../../../components/header.astro';
 import AdSlot from '../../../components/AdSlot.astro';
 import Footer from '../../../components/footer.astro';
-import {
-  findNewsItem,
-  getAllNews,
-  getCrossCategoryNews,
-  getRelatedNews,
-} from '../../../lib/news';
-import { adSlots } from '../../../data/ads';
+import { render } from 'astro:content';
+import { findNewsItem, getCrossCategoryNews, getRelatedNews } from '../../../lib/news';
+import { isPosterImage, videoMimeTypeFromUrl } from '../../../lib/news-video';
+import { getResolvedAdSlots } from '../../../lib/site-content';
 
-export async function getStaticPaths() {
-  const allNews = await getAllNews();
-
-  return allNews.map((article) => ({
-    params: {
-      category: article.categorySlug,
-      article: article.slug,
-    },
-  }));
-}
+/** Rutas resueltas en cada peticion para incluir noticias nuevas en Supabase sin redeploy. */
+export const prerender = false;
 
 const categorySlug = Astro.params.category;
 const articleSlug = Astro.params.article;
@@ -32,16 +21,24 @@ if (!categorySlug || !articleSlug) {
 const article = await findNewsItem(categorySlug, articleSlug);
 
 if (!article) {
-  throw new Error(`No se encontro la noticia ${categorySlug}/${articleSlug}.`);
+  return Astro.redirect('/');
 }
 
 const relatedNews = await getRelatedNews(categorySlug, articleSlug, 4);
 const differentCategoryNews = await getCrossCategoryNews(categorySlug, articleSlug, 6);
+const adSlots = await getResolvedAdSlots();
 const articleSummary =
   article.excerpt ??
   'Seguimiento, contexto y desarrollo de la noticia para entender sus puntos principales.';
 const articleImage = typeof article.image === 'string' ? article.image : article.image.src;
-const renderedArticle = article.entry ? await article.entry.render() : null;
+const isVideoArticle = Boolean(article.videoUrl);
+const rawVideoUrl = article.videoUrl ?? '';
+const articleVideoUrl = rawVideoUrl
+  ? `/api/news-media?src=${encodeURIComponent(rawVideoUrl)}`
+  : '';
+const articleVideoMime = rawVideoUrl ? videoMimeTypeFromUrl(rawVideoUrl) : 'video/mp4';
+const videoPoster = isPosterImage(articleImage) ? articleImage : undefined;
+const renderedArticle = article.entry ? await render(article.entry) : null;
 const Content = renderedArticle?.Content;
 ---
 
@@ -67,15 +64,46 @@ const Content = renderedArticle?.Content;
 
         <div class="mt-6 grid gap-8 xl:grid-cols-[minmax(0,1fr)_320px]">
           <article class="overflow-hidden rounded-[28px] bg-[#f2f2f2] text-[#1a2332] shadow-[0_30px_60px_rgba(0,0,0,0.22)]">
-            <div class="relative min-h-[340px] md:min-h-[520px]">
-              <img
-                src={articleImage}
-                alt={article.headline}
-                class="absolute inset-0 h-full w-full object-cover"
-              />
-              <div class="absolute inset-0 bg-gradient-to-t from-[#041d3d] via-[#041d3d]/45 to-transparent"></div>
-
-              <div class="absolute inset-x-0 bottom-0 p-6 md:p-10">
+            {isVideoArticle ? (
+              <>
+                <div class="bg-black">
+                  <video
+                    id="article-cover-video"
+                    class="w-full aspect-video max-h-[min(72vh,720px)] bg-black"
+                    controls
+                    playsinline
+                    preload="auto"
+                    poster={videoPoster}
+                  >
+                    <source src={articleVideoUrl} type={articleVideoMime} />
+                  </video>
+                  <p id="article-video-error" class="hidden px-6 py-4 text-center text-sm text-red-200">
+                    No se pudo reproducir el video. Si es un archivo MOV de iPhone, exportalo como MP4 (H.264) y vuelve a subirlo.
+                  </p>
+                </div>
+                <div class="bg-[#041d3d] px-6 py-8 md:px-10">
+                  <div class="flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.2em]">
+                    <span class="rounded-full bg-[#a62b2b] px-4 py-1.5 font-semibold text-white">{article.category}</span>
+                    <span class="text-white/65">{article.timeAgo}</span>
+                    <span class="rounded-full border border-white/20 px-3 py-1 text-white/80">Video</span>
+                  </div>
+                  <h1 class="mt-5 max-w-4xl font-newsreader text-4xl leading-tight text-white md:text-5xl">
+                    {article.headline}
+                  </h1>
+                  <p class="mt-4 max-w-3xl text-base leading-7 text-white/82 md:text-lg">
+                    {articleSummary}
+                  </p>
+                </div>
+              </>
+            ) : (
+              <div class="relative min-h-[340px] md:min-h-[520px]">
+                <img
+                  src={articleImage}
+                  alt={article.headline}
+                  class="absolute inset-0 h-full w-full object-cover"
+                />
+                <div class="absolute inset-0 bg-gradient-to-t from-[#041d3d] via-[#041d3d]/45 to-transparent pointer-events-none"></div>
+                <div class="absolute inset-x-0 bottom-0 p-6 md:p-10 pointer-events-none">
                 <div class="flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.2em]">
                   <span class="rounded-full bg-[#a62b2b] px-4 py-1.5 font-semibold text-white">{article.category}</span>
                   <span class="text-white/65">{article.timeAgo}</span>
@@ -88,8 +116,9 @@ const Content = renderedArticle?.Content;
                 <p class="mt-4 max-w-3xl text-base leading-7 text-white/82 md:text-lg">
                   {articleSummary}
                 </p>
+                </div>
               </div>
-            </div>
+            )}
 
             <div class="grid gap-8 px-6 py-8 md:px-10 md:py-10 lg:grid-cols-[minmax(0,1fr)_250px]">
               <div>
@@ -197,6 +226,19 @@ const Content = renderedArticle?.Content;
     <Footer />
   </div>
 </Layout>
+
+{isVideoArticle && (
+  <script>
+    const video = document.getElementById('article-cover-video');
+    const errorMessage = document.getElementById('article-video-error');
+
+    if (video instanceof HTMLVideoElement && errorMessage) {
+      video.addEventListener('error', () => {
+        errorMessage.classList.remove('hidden');
+      });
+    }
+  </script>
+)}
 
 <style>
   .article-copy :global(p) {

@@ -3,6 +3,18 @@ export const NEWS_CATEGORY_META = {
     title: "Ultima hora",
     accentColor: "#a62b2b",
   },
+  "lo-ultimo": {
+    title: "Lo ultimo",
+    accentColor: "#a62b2b",
+  },
+  judicial: {
+    title: "Judicial",
+    accentColor: "#a62b2b",
+  },
+  actualidad: {
+    title: "Actualidad",
+    accentColor: "#a62b2b",
+  },
   internacional: {
     title: "Internacional",
     accentColor: "#a62b2b",

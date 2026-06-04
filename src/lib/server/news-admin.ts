@@ -1,6 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { resolveVideoContentType } from "../news-video";
 import { NEWS_CATEGORY_META, type NewsCategorySlug } from "../news-categories";
 import { createSupabaseAdminClient, isSupabaseConfigured } from "./supabase";
+
+export type CoverMediaType = "image" | "video";
 
 export interface NewsArticleRecord {
   id: string;
@@ -12,10 +15,37 @@ export interface NewsArticleRecord {
   body: string;
   cover_image_url: string | null;
   cover_image_path: string | null;
+  cover_media_type?: CoverMediaType | null;
+  cover_video_url: string | null;
+  cover_video_path: string | null;
   published_at: string;
   status: "draft" | "published";
   created_at: string;
   updated_at: string;
+}
+
+export const NEWS_IMAGE_MAX_BYTES = 6 * 1024 * 1024;
+export const NEWS_VIDEO_MAX_BYTES = 100 * 1024 * 1024;
+
+const NEWS_VIDEO_MIME_TYPES = new Set([
+  "video/mp4",
+  "video/webm",
+  "video/quicktime",
+]);
+
+const NEWS_VIDEO_EXTENSIONS = new Set(["mp4", "webm", "mov"]);
+
+export function isCoverMediaType(value: string): value is CoverMediaType {
+  return value === "image" || value === "video";
+}
+
+export function isNewsVideoFile(file: File): boolean {
+  if (NEWS_VIDEO_MIME_TYPES.has(file.type)) {
+    return true;
+  }
+
+  const extension = file.name.includes(".") ? file.name.split(".").pop()?.toLowerCase() : "";
+  return Boolean(extension && NEWS_VIDEO_EXTENSIONS.has(extension));
 }
 
 const NEWS_TABLE = "news_articles";
@@ -166,6 +196,48 @@ export async function uploadNewsImage(file: File, currentPath?: string | null) {
   };
 }
 
+export async function uploadNewsVideo(file: File, currentPath?: string | null) {
+  const supabase = getAdminClient();
+  const safeName = slugify(file.name.replace(/\.[^/.]+$/, "")) || "video";
+  const extension = file.name.includes(".") ? file.name.split(".").pop()?.toLowerCase() : "mp4";
+  const objectPath = `videos/${Date.now()}-${safeName}.${extension || "mp4"}`;
+  const contentType = resolveVideoContentType(file);
+
+  const { error } = await supabase.storage
+    .from(NEWS_BUCKET)
+    .upload(objectPath, file, {
+      cacheControl: "3600",
+      upsert: false,
+      contentType,
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  if (currentPath) {
+    await supabase.storage.from(NEWS_BUCKET).remove([currentPath]);
+  }
+
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from(NEWS_BUCKET).getPublicUrl(objectPath);
+
+  return {
+    publicUrl,
+    path: objectPath,
+  };
+}
+
+export async function removeNewsStoragePath(path?: string | null) {
+  if (!path) {
+    return;
+  }
+
+  const supabase = getAdminClient();
+  await supabase.storage.from(NEWS_BUCKET).remove([path]);
+}
+
 export async function saveNewsArticle(input: {
   id?: string;
   title: string;
@@ -175,8 +247,11 @@ export async function saveNewsArticle(input: {
   body: string;
   publishedAt: string;
   status: "draft" | "published";
+  coverMediaType?: CoverMediaType;
   coverImageUrl?: string | null;
   coverImagePath?: string | null;
+  coverVideoUrl?: string | null;
+  coverVideoPath?: string | null;
 }) {
   const supabase = getAdminClient();
   const slug = await ensureUniqueSlug(supabase, slugify(input.title), input.id);
@@ -190,8 +265,11 @@ export async function saveNewsArticle(input: {
     body: input.body,
     published_at: input.publishedAt,
     status: input.status,
+    cover_media_type: input.coverMediaType ?? "image",
     cover_image_url: input.coverImageUrl ?? null,
     cover_image_path: input.coverImagePath ?? null,
+    cover_video_url: input.coverVideoUrl ?? null,
+    cover_video_path: input.coverVideoPath ?? null,
   };
 
   if (input.id) {
@@ -216,4 +294,22 @@ export async function saveNewsArticle(input: {
   }
 
   return data as NewsArticleRecord;
+}
+
+export async function deleteNewsArticle(id: string) {
+  const supabase = getAdminClient();
+  const row = await getAdminNewsById(id);
+
+  if (!row) {
+    return;
+  }
+
+  await removeNewsStoragePath(row.cover_image_path);
+  await removeNewsStoragePath(row.cover_video_path);
+
+  const { error } = await supabase.from(NEWS_TABLE).delete().eq("id", id);
+
+  if (error) {
+    throw error;
+  }
 }

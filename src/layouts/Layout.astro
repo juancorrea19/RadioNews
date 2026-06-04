@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import RadioPlayer from '../components/RadioPlayer';
+import { SHOW_RADIO_PLAYER } from '../lib/site-features';
 
 export interface Props {
   title?: string;
@@ -58,6 +59,7 @@ const jsonLdItems = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     {imageUrl && <meta name="twitter:image" content={imageUrl} />}
     {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
     <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
     <title>{title}</title>
     {jsonLdItems.map((item) => (
       <script type="application/ld+json" set:html={JSON.stringify(item)} />
@@ -65,6 +67,6 @@ const jsonLdItems = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
   </head>
   <body class="bg-[#041d3d] text-white">
     <slot />
-    <RadioPlayer />
+    {SHOW_RADIO_PLAYER && <RadioPlayer client:load />}
   </body>
 </html>

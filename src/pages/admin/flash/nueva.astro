@@ -1,0 +1,100 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { getAuthenticatedAdmin } from "../../../lib/server/admin-auth";
+import { isSupabaseConfigured } from "../../../lib/server/supabase";
+
+const session = await getAuthenticatedAdmin(Astro.cookies);
+
+if (!session.user) {
+  return Astro.redirect("/admin/login");
+}
+
+if (!isSupabaseConfigured()) {
+  return Astro.redirect("/admin/login?error=config");
+}
+
+const errorRaw = Astro.url.searchParams.get("error");
+const error = errorRaw ? decodeURIComponent(errorRaw.replace(/\+/g, " ")) : "";
+---
+
+<AdminLayout title="Nueva diapositiva — Flash" userEmail={session.user.email ?? undefined}>
+  <section class="rounded-[28px] border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+    {error ? (
+      <div class="mb-6 rounded-2xl border border-red-400/25 bg-red-400/10 p-4 text-sm text-red-100">{error}</div>
+    ) : null}
+
+    <form method="POST" action="/api/admin/flash/save" enctype="multipart/form-data" class="grid gap-6 lg:grid-cols-2">
+      <label class="block">
+        <span class="mb-2 block text-sm text-white/75">Categoria (etiqueta)</span>
+        <input
+          type="text"
+          name="category"
+          required
+          placeholder="Ej. Nacion, Deportes"
+          class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]"
+        />
+      </label>
+
+      <label class="block">
+        <span class="mb-2 block text-sm text-white/75">Orden (menor = primero)</span>
+        <input
+          type="number"
+          name="sortOrder"
+          value="0"
+          class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]"
+        />
+      </label>
+
+      <label class="block lg:col-span-2">
+        <span class="mb-2 block text-sm text-white/75">Titulo</span>
+        <input
+          type="text"
+          name="title"
+          required
+          class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]"
+        />
+      </label>
+
+      <label class="block lg:col-span-2">
+        <span class="mb-2 block text-sm text-white/75">Texto / resumen largo</span>
+        <textarea name="body" rows="8" required class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]" />
+      </label>
+
+      <label class="block">
+        <span class="mb-2 block text-sm text-white/75">Fecha en linea (texto libre)</span>
+        <input
+          type="text"
+          name="dateLine"
+          required
+          placeholder="23 Marzo, 2026."
+          class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]"
+        />
+      </label>
+
+      <label class="block">
+        <span class="mb-2 block text-sm text-white/75">Estado</span>
+        <select name="status" class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]">
+          <option value="draft">Borrador</option>
+          <option value="published">Publicado</option>
+        </select>
+      </label>
+
+      <label class="block lg:col-span-2">
+        <span class="mb-2 block text-sm text-white/75">Imagen (horizontal recomendada)</span>
+        <input
+          type="file"
+          name="image"
+          accept="image/*"
+          required
+          class="block w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-sm text-white/80 file:mr-4 file:rounded-full file:border-0 file:bg-[#a62b2b] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
+        />
+      </label>
+
+      <div class="flex justify-end lg:col-span-2">
+        <button type="submit" class="rounded-full bg-[#a62b2b] px-6 py-3 font-semibold text-white transition-colors hover:bg-[#8f2424]">
+          Guardar diapositiva
+        </button>
+      </div>
+    </form>
+  </section>
+</AdminLayout>

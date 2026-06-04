@@ -1,18 +1,22 @@
 ---
-import Background from '../assets/Background.svg';
+const logoSrc = '/logo-radio-news.png';
 
 const primaryLinks = [
   { href: '/#flash-informativo', label: 'Flash Informativo' },
+  { href: '/#lo-ultimo', label: 'Lo ultimo' },
+  { href: '/#judicial', label: 'Judicial' },
+  { href: '/#actualidad', label: 'Actualidad' },
   { href: '/#internacional', label: 'Internacional' },
   { href: '/#nacion', label: 'Nacion' },
   { href: '/#deportes', label: 'Deportes' },
-  { href: '/#entretenimiento', label: 'Entretenimiento' },
-  { href: '/#magazine-cultural', label: 'Cultura' },
 ];
 
 const dropdownLinks = [
   { href: '/#flash-informativo', label: 'Flash Informativo' },
   { href: '/#ultima-hora', label: 'Ultima hora' },
+  { href: '/#lo-ultimo', label: 'Lo ultimo' },
+  { href: '/#judicial', label: 'Judicial' },
+  { href: '/#actualidad', label: 'Actualidad' },
   { href: '/#internacional', label: 'Internacional' },
   { href: '/#nacion', label: 'Nacion' },
   { href: '/#deportes', label: 'Deportes' },
@@ -31,9 +35,9 @@ const currentDate = `${meses[now.getMonth()]}.${now.getDate()}-${now.getFullYear
       <div class="flex items-center justify-between gap-4 lg:justify-start">
         <a href="/" aria-label="Ir al inicio de Radio News Online">
           <img
-            src={Background.src}
+            src={logoSrc}
             alt="Radio News Online Logo"
-            class="h-20 w-20 cursor-pointer object-contain transition-opacity hover:opacity-90 sm:h-24 sm:w-24 lg:h-[100px] lg:w-[100px]"
+            class="h-20 w-20 cursor-pointer rounded-full object-cover shadow-md ring-2 ring-[#a62b2b]/20 transition-opacity hover:opacity-90 sm:h-24 sm:w-24 lg:h-[100px] lg:w-[100px]"
           />
         </a>
 
@@ -56,7 +60,7 @@ const currentDate = `${meses[now.getMonth()]}.${now.getDate()}-${now.getFullYear
 
           <div
             id="header-dropdown-menu"
-            class="invisible absolute left-0 top-14 z-50 flex min-w-[240px] origin-top-left scale-95 flex-col rounded-lg bg-white py-2 opacity-0 shadow-2xl transition duration-150 ease-out"
+            class="invisible absolute right-0 top-14 z-50 flex w-[min(240px,calc(100vw-2rem))] origin-top-right scale-95 flex-col rounded-lg bg-white py-2 opacity-0 shadow-2xl transition duration-150 ease-out lg:left-0 lg:right-auto lg:w-auto lg:min-w-[240px] lg:origin-top-left"
           >
             {dropdownLinks.map((link) => (
               <a
@@ -132,7 +136,7 @@ const currentDate = `${meses[now.getMonth()]}.${now.getDate()}-${now.getFullYear
           <span class="rounded-full bg-[#a62b2b] px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-white">Radio News Online</span>
           <h2 class="mt-4 font-newsreader text-3xl text-[#1a2332]">Registrar denuncia</h2>
           <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-            Envianos los datos basicos del caso. La evidencia queda lista para enviarse al correo o al backend que conectes.
+            Envianos los datos del caso. Con el sitio configurado, la denuncia y la evidencia se archivan en Supabase y el equipo recibe un correo (Resend).
           </p>
         </div>
         <button type="button" data-close-modal class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-[#a62b2b] hover:text-[#a62b2b]">x</button>
@@ -172,7 +176,7 @@ const currentDate = `${meses[now.getMonth()]}.${now.getDate()}-${now.getFullYear
           <span class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Evidencia</span>
           <div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4">
             <input class="block w-full text-sm text-slate-700 file:mr-4 file:rounded-full file:border-0 file:bg-[#a62b2b] file:px-4 file:py-2 file:font-semibold file:text-white hover:file:bg-[#8a2424]" type="file" name="evidencia" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.mp4,.mp3" />
-            <p class="mt-3 text-xs leading-5 text-slate-500">Admite archivos de evidencia y queda listo para enviarse al correo o al backend.</p>
+            <p class="mt-3 text-xs leading-5 text-slate-500">Archivos de evidencia (max. 8 MB): se suben de forma segura y el equipo puede descargarlos desde el panel.</p>
           </div>
         </label>
 
@@ -201,7 +205,7 @@ const currentDate = `${meses[now.getMonth()]}.${now.getDate()}-${now.getFullYear
           <span class="rounded-full bg-[#1a2332] px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-white">Radio News Online</span>
           <h2 class="mt-4 font-newsreader text-3xl text-[#1a2332]">Registro de colaboradores</h2>
           <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-            Recibe informacion por correo y cuentanos como te gustaria colaborar con el medio.
+            Cuentanos como te gustaria colaborar. Con el sitio configurado, tu solicitud se guarda en Supabase y recibes un acuse por correo (Resend); el equipo recibe una copia.
           </p>
         </div>
         <button type="button" data-close-modal class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-[#1a2332] hover:text-[#1a2332]">x</button>

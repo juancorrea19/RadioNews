@@ -4,11 +4,15 @@ import carta1 from '../../assets/carta1.webp'
 import carta2 from '../../assets/carta2.webp'
 import carta3 from '../../assets/carta3.webp'
 
+export type CoverMediaType = 'image' | 'video'
+
 export interface NewsItem {
   id: string
   slug: string
   href: string
   image: string | ImageMetadata
+  coverMediaType?: CoverMediaType
+  videoUrl?: string
   category: string
   categorySlug: string
   timeAgo: string
@@ -43,6 +47,9 @@ interface RawCategoryData {
 
 export const CATEGORY_COLORS: Record<string, string> = {
   'ultima-hora': '#a62b2b',
+  'lo-ultimo': '#a62b2b',
+  judicial: '#a62b2b',
+  actualidad: '#a62b2b',
   internacional: '#a62b2b',
   nacion: '#a62b2b',
   entretenimiento: '#a62b2b',
@@ -117,6 +124,69 @@ const rawCategoriesData: RawCategoryData[] = [
       { id: 'uh1', image: carta1, category: 'Última hora', timeAgo: '10m', headline: 'Noticia de última hora ejemplo 1' },
       { id: 'uh2', image: carta2, category: 'Última hora', timeAgo: '25m', headline: 'Noticia de última hora ejemplo 2' },
       { id: 'uh3', image: carta3, category: 'Última hora', timeAgo: '1h', headline: 'Noticia de última hora ejemplo 3' },
+    ],
+  },
+  {
+    title: 'Lo ultimo',
+    slug: 'lo-ultimo',
+    accentColor: CATEGORY_COLORS['lo-ultimo'],
+    news: [
+      {
+        id: 'lu1',
+        image: carta1,
+        category: 'Lo ultimo',
+        timeAgo: '15m',
+        headline: 'Lo ultimo en la agenda informativa del dia',
+      },
+      {
+        id: 'lu2',
+        image: carta2,
+        category: 'Lo ultimo',
+        timeAgo: '40m',
+        headline: 'Resumen de los hechos mas recientes',
+      },
+    ],
+  },
+  {
+    title: 'Judicial',
+    slug: 'judicial',
+    accentColor: CATEGORY_COLORS.judicial,
+    news: [
+      {
+        id: 'jud1',
+        image: carta2,
+        category: 'Judicial',
+        timeAgo: '1h',
+        headline: 'Avances en investigaciones y decisiones de tribunales',
+      },
+      {
+        id: 'jud2',
+        image: carta3,
+        category: 'Judicial',
+        timeAgo: '3h',
+        headline: 'Cobertura judicial de casos de impacto nacional',
+      },
+    ],
+  },
+  {
+    title: 'Actualidad',
+    slug: 'actualidad',
+    accentColor: CATEGORY_COLORS.actualidad,
+    news: [
+      {
+        id: 'act1',
+        image: carta1,
+        category: 'Actualidad',
+        timeAgo: '20m',
+        headline: 'Temas que marcan la conversacion publica hoy',
+      },
+      {
+        id: 'act2',
+        image: carta3,
+        category: 'Actualidad',
+        timeAgo: '2h',
+        headline: 'Panorama de actualidad en Colombia y la region',
+      },
     ],
   },
   {
