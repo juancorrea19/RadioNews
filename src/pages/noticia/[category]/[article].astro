@@ -24,9 +24,11 @@ if (!article) {
   return Astro.redirect('/');
 }
 
-const relatedNews = await getRelatedNews(categorySlug, articleSlug, 4);
-const differentCategoryNews = await getCrossCategoryNews(categorySlug, articleSlug, 6);
-const adSlots = await getResolvedAdSlots();
+const [relatedNews, differentCategoryNews, adSlots] = await Promise.all([
+  getRelatedNews(categorySlug, articleSlug, 4),
+  getCrossCategoryNews(categorySlug, articleSlug, 6),
+  getResolvedAdSlots(),
+]);
 const articleSummary =
   article.excerpt ??
   'Seguimiento, contexto y desarrollo de la noticia para entender sus puntos principales.';

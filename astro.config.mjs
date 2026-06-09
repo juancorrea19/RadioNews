@@ -13,8 +13,7 @@ export default defineConfig({
     react(),
     // sitemap() // Descomenta SOLO si realmente usas la integración de sitemap
   ],
-  vite: {
-    plugins: [tailwind()]
-  },
+
   adapter: vercel(),
+
 });

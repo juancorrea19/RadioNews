@@ -221,6 +221,8 @@ async function hydrateSp500(data: TickerItem[], opts: { fmpApiKey?: string; fmpS
   }
 }
 
+const TICKER_CACHE_SECONDS = 120;
+
 export const GET: APIRoute = async () => {
   const WEATHER_KEY = import.meta.env.OPENWEATHER_API_KEY;
   const EXCHANGE_KEY = import.meta.env.EXCHANGE_RATE_API_KEY;
@@ -304,7 +306,7 @@ export const GET: APIRoute = async () => {
       status: 200,
       headers: {
         "Content-Type": "application/json",
-        "Cache-Control": "no-store",
+        "Cache-Control": `public, max-age=${TICKER_CACHE_SECONDS}, s-maxage=${TICKER_CACHE_SECONDS}`,
       },
     });
   } catch (error) {
@@ -314,7 +316,7 @@ export const GET: APIRoute = async () => {
       status: 200,
       headers: {
         "Content-Type": "application/json",
-        "Cache-Control": "no-store",
+        "Cache-Control": `public, max-age=60, s-maxage=60`,
       },
     });
   }

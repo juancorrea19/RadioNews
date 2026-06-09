@@ -69,15 +69,13 @@ function LiveClock() {
 
 export default function TickerBar() {
   const [items, setItems] = useState<TickerItem[]>(FALLBACK_ITEMS);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
 
     const fetchTicker = async () => {
       try {
-        const response = await fetch(`/api/ticker.json?t=${Date.now()}`, {
-          cache: "no-store",
+        const response = await fetch("/api/ticker.json", {
           headers: {
             Accept: "application/json",
           },
@@ -98,14 +96,6 @@ export default function TickerBar() {
         }
       } catch (error) {
         console.error("Error cargando el ticker en vivo:", error);
-
-        if (!cancelled) {
-          setItems((currentItems) => (currentItems.length > 0 ? currentItems : FALLBACK_ITEMS));
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
       }
     };
 
@@ -117,10 +107,6 @@ export default function TickerBar() {
       window.clearInterval(interval);
     };
   }, []);
-
-  if (loading) {
-    return <div className="h-14 w-full animate-pulse bg-[#021529]" />;
-  }
 
   const visible =
     items.length > 0 ? items : FALLBACK_ITEMS.filter((item) => !TICKER_HIDDEN_IDS.has(item.id));

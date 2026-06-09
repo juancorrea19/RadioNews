@@ -12,9 +12,11 @@ import { getFlashCarouselSlides, getResolvedAdSlots } from '../lib/site-content'
 const pageTitle = 'Radio News Online | Noticias de última hora';
 const pageDescription =
   'Sigue en Radio News Online las noticias de última hora, el flash informativo y cobertura por categorías en un solo lugar.';
-const categoriesData = await getCategoriesData();
-const flashSlides = await getFlashCarouselSlides();
-const adSlots = await getResolvedAdSlots();
+const [categoriesData, flashSlides, adSlots] = await Promise.all([
+  getCategoriesData(),
+  getFlashCarouselSlides(),
+  getResolvedAdSlots(),
+]);
 const site = Astro.site ?? (import.meta.env.PUBLIC_SITE_URL ? new URL(import.meta.env.PUBLIC_SITE_URL) : undefined);
 const siteUrl = site?.toString();
 const logoUrl = site ? new URL('/favicon.png', site).toString() : undefined;
@@ -48,7 +50,7 @@ const websiteSchema = {
 >
   <div class="min-h-screen flex flex-col overflow-x-hidden text-white" style="background-color: #041d3d;">
     <Header />
-    <TickerBar client:load />
+    <TickerBar client:idle />
     
     <div id="flash-informativo" class="relative z-10 max-w-7xl mx-auto px-6 pt-12 scroll-mt-24">
       <h2 class="text-3xl md:text-[40px] font-semibold font-newsreader text-[#f2f2f2]">
@@ -65,7 +67,7 @@ const websiteSchema = {
     <main>
       <NewsCategoriesGrid 
         categories={categoriesData}
-        client:load 
+        client:idle 
       />
 
       <section class="max-w-7xl mx-auto w-full px-4 md:px-6 pb-6">

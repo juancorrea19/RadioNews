@@ -44,6 +44,8 @@ function CardHorizontal({ item }: { item: NewsItem }) {
           <img
             src={imgSrc(item.image)}
             alt={item.headline}
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
           {item.coverMediaType === 'video' && <VideoBadge />}
@@ -69,6 +71,8 @@ function CardVertical({ item, large = false }: { item: NewsItem; large?: boolean
           <img
             src={imgSrc(item.image)}
             alt={item.headline}
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
           {item.coverMediaType === 'video' && <VideoBadge />}
@@ -111,6 +115,8 @@ function CardOverlay({
         <img
           src={imgSrc(item.image)}
           alt={item.headline}
+          loading="lazy"
+          decoding="async"
           className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
@@ -256,7 +262,7 @@ function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) 
         <div className="md:col-span-5 relative overflow-hidden" style={{ height: MAG_HEIGHT }}>
           {cover ? (
             <ArticleLink item={cover} className="group absolute inset-0 block">
-              <img src={imgSrc(cover.image)} alt={cover.headline} className="absolute inset-0 w-full h-full object-cover" />
+              <img src={imgSrc(cover.image)} alt={cover.headline} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover" />
               <div
                 className="absolute inset-0"
                 style={{
@@ -311,6 +317,8 @@ function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) 
                 <img
                   src={imgSrc(lead.image)}
                   alt={lead.headline}
+                  loading="lazy"
+                  decoding="async"
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
                 <div
@@ -360,6 +368,8 @@ function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) 
                       <img
                         src={imgSrc(item.image)}
                         alt={item.headline}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
                     </div>

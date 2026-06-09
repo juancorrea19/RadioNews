@@ -148,6 +148,14 @@ export async function getAdminNewsById(id: string) {
   return data as NewsArticleRecord | null;
 }
 
+const NEWS_LISTING_COLUMNS =
+  "id, title, slug, category, excerpt, author, cover_image_url, cover_media_type, cover_video_url, published_at, status, created_at, updated_at";
+
+export type NewsArticleListingRecord = Omit<
+  NewsArticleRecord,
+  "body" | "cover_image_path" | "cover_video_path"
+>;
+
 export async function listPublishedNews() {
   const supabase = getAdminClient();
   const { data, error } = await supabase
@@ -162,6 +170,39 @@ export async function listPublishedNews() {
   }
 
   return (data ?? []) as NewsArticleRecord[];
+}
+
+export async function listPublishedNewsForListing() {
+  const supabase = getAdminClient();
+  const { data, error } = await supabase
+    .from(NEWS_TABLE)
+    .select(NEWS_LISTING_COLUMNS)
+    .eq("status", "published")
+    .order("published_at", { ascending: false })
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as NewsArticleListingRecord[];
+}
+
+export async function getPublishedNewsBySlug(category: NewsCategorySlug, slug: string) {
+  const supabase = getAdminClient();
+  const { data, error } = await supabase
+    .from(NEWS_TABLE)
+    .select("*")
+    .eq("status", "published")
+    .eq("category", category)
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as NewsArticleRecord | null;
 }
 
 export async function uploadNewsImage(file: File, currentPath?: string | null) {

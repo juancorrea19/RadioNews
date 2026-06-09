@@ -9,7 +9,12 @@ import {
   NEWS_CATEGORY_ORDER,
   type NewsCategorySlug,
 } from "./news-categories";
-import { listPublishedNews, type NewsArticleRecord } from "./server/news-admin";
+import {
+  getPublishedNewsBySlug,
+  listPublishedNewsForListing,
+  type NewsArticleListingRecord,
+  type NewsArticleRecord,
+} from "./server/news-admin";
 import { isSupabaseConfigured } from "./server/supabase";
 
 export interface ResolvedNewsItem extends NewsItem {
@@ -98,7 +103,9 @@ async function getCmsNews(): Promise<ResolvedNewsItem[]> {
 
 const VIDEO_CARD_PLACEHOLDER = "/favicon.png";
 
-function mapSupabaseNews(record: NewsArticleRecord): ResolvedNewsItem {
+function mapSupabaseNewsBase(
+  record: NewsArticleListingRecord | NewsArticleRecord,
+): Omit<ResolvedNewsItem, "content"> {
   const categorySlug = record.category as NewsCategorySlug;
   const meta = NEWS_CATEGORY_META[categorySlug];
   const publishedAt = new Date(record.published_at);
@@ -118,9 +125,22 @@ function mapSupabaseNews(record: NewsArticleRecord): ResolvedNewsItem {
     timeAgo: formatTimeAgo(publishedAt),
     headline: record.title,
     excerpt: record.excerpt ?? undefined,
-    content: splitContent(record.body, record.excerpt ?? undefined),
     author: record.author ?? "Redaccion Radio News Online",
     publishedAt,
+  };
+}
+
+function mapSupabaseNewsListing(record: NewsArticleListingRecord): ResolvedNewsItem {
+  return {
+    ...mapSupabaseNewsBase(record),
+    content: [],
+  };
+}
+
+function mapSupabaseNews(record: NewsArticleRecord): ResolvedNewsItem {
+  return {
+    ...mapSupabaseNewsBase(record),
+    content: splitContent(record.body, record.excerpt ?? undefined),
   };
 }
 
@@ -130,8 +150,8 @@ async function getSupabaseNews(): Promise<ResolvedNewsItem[]> {
   }
 
   try {
-    const records = await listPublishedNews();
-    return records.map(mapSupabaseNews);
+    const records = await listPublishedNewsForListing();
+    return records.map(mapSupabaseNewsListing);
   } catch (error) {
     console.error("No se pudieron cargar las noticias desde Supabase.", error);
     return [];
@@ -168,6 +188,17 @@ export async function getCategoriesData(): Promise<CategoryData[]> {
 }
 
 export async function findNewsItem(categorySlug: string, articleSlug: string): Promise<ResolvedNewsItem | undefined> {
+  if (isSupabaseConfigured()) {
+    try {
+      const record = await getPublishedNewsBySlug(categorySlug as NewsCategorySlug, articleSlug);
+      if (record) {
+        return mapSupabaseNews(record);
+      }
+    } catch (error) {
+      console.error("No se pudo cargar la noticia desde Supabase.", error);
+    }
+  }
+
   const allNews = await getAllNews();
   return allNews.find((item) => item.categorySlug === categorySlug && item.slug === articleSlug);
 }
