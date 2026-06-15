@@ -1,5 +1,6 @@
-/* Tailwind v4: escanear src/ (ruta relativa a este archivo) */
+/* Tailwind v4: escanear componentes Astro, React y páginas */
 @import "tailwindcss";
+@source "../**/*.{astro,html,js,jsx,ts,tsx}";
 
 @theme {
   --color-dark-navy: #02153c;
