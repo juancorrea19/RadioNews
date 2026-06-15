@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import Logo from '../assets/Background.svg'
+import Logo from '../assets/background.svg'
 import type { NewsItem } from '../data/news'
 
 interface CategorySectionProps {
