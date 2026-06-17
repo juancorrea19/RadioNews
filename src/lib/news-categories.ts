@@ -20,7 +20,7 @@ export const NEWS_CATEGORY_META = {
     accentColor: "#a62b2b",
   },
   nacion: {
-    title: "Nacion",
+    title: "Nación",
     accentColor: "#a62b2b",
   },
   entretenimiento: {
