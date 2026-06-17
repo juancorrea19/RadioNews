@@ -98,11 +98,11 @@ const Content = renderedArticle?.Content;
                 </div>
               </>
             ) : (
-              <div class="relative min-h-[340px] md:min-h-[520px]">
+              <div class="relative aspect-video max-h-[min(72vh,720px)] w-full overflow-hidden">
                 <img
                   src={articleImage}
                   alt={article.headline}
-                  class="absolute inset-0 h-full w-full object-cover"
+                  class="absolute inset-0 h-full w-full object-cover object-center"
                 />
                 <div class="absolute inset-0 bg-gradient-to-t from-[#041d3d] via-[#041d3d]/45 to-transparent pointer-events-none"></div>
                 <div class="absolute inset-x-0 bottom-0 p-6 md:p-10 pointer-events-none">

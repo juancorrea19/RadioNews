@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveVideoContentType } from "../news-video";
 import { NEWS_CATEGORY_META, type NewsCategorySlug } from "../news-categories";
+import { normalizeCoverImage } from "./cover-image";
 import { createSupabaseAdminClient, isSupabaseConfigured } from "./supabase";
 
 export type CoverMediaType = "image" | "video";
@@ -208,15 +209,15 @@ export async function getPublishedNewsBySlug(category: NewsCategorySlug, slug: s
 export async function uploadNewsImage(file: File, currentPath?: string | null) {
   const supabase = getAdminClient();
   const safeName = slugify(file.name.replace(/\.[^/.]+$/, "")) || "imagen";
-  const extension = file.name.includes(".") ? file.name.split(".").pop()?.toLowerCase() : "jpg";
-  const objectPath = `covers/${Date.now()}-${safeName}.${extension || "jpg"}`;
+  const normalized = await normalizeCoverImage(file);
+  const objectPath = `covers/${Date.now()}-${safeName}.${normalized.extension}`;
 
   const { error } = await supabase.storage
     .from(NEWS_BUCKET)
-    .upload(objectPath, file, {
+    .upload(objectPath, normalized.buffer, {
       cacheControl: "3600",
       upsert: false,
-      contentType: file.type || "application/octet-stream",
+      contentType: normalized.contentType,
     });
 
   if (error) {

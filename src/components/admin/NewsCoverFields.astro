@@ -67,9 +67,14 @@ const mediaType = article?.cover_media_type ?? "image";
     class="block w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-sm text-white/80 file:mr-4 file:rounded-full file:border-0 file:bg-[#a62b2b] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
   />
   {article?.cover_image_url && (
-    <img src={article.cover_image_url} alt={article.title} class="mt-4 h-40 w-full max-w-xl rounded-2xl object-cover" />
+    <img src={article.cover_image_url} alt={article.title} class="mt-4 aspect-video w-full max-w-xl rounded-2xl object-cover object-center" />
   )}
-  <p id="cover-image-hint" class="mt-2 text-xs text-white/50" hidden={mediaType !== "video"}>
+  <p id="cover-image-hint" class="mt-2 text-xs leading-5 text-white/50">
+    {mediaType === "video"
+      ? "Miniatura recomendada: 16:9 (1920×1080 px). El servidor la ajusta al subirla."
+      : "Formato recomendado: 16:9 (1920×1080 px), JPG o PNG. Centra el sujeto principal; al guardar se normaliza a 1920×1080."}
+  </p>
+  <p id="cover-video-thumb-hint" class="mt-2 text-xs text-white/50" hidden={mediaType !== "video"}>
     Si no subes miniatura, en listados se usara un marcador por defecto.
   </p>
 </label>
@@ -82,6 +87,7 @@ const mediaType = article?.cover_media_type ?? "image";
     const videoInput = document.getElementById("coverVideoInput");
     const labelText = document.getElementById("cover-image-label-text");
     const hint = document.getElementById("cover-image-hint");
+    const videoThumbHint = document.getElementById("cover-video-thumb-hint");
 
     if (
       !(select instanceof HTMLSelectElement) ||
@@ -109,7 +115,13 @@ const mediaType = article?.cover_media_type ?? "image";
         : "Cambiar imagen principal";
 
     if (hint) {
-      hint.hidden = !isVideo;
+      hint.textContent = isVideo
+        ? "Miniatura recomendada: 16:9 (1920×1080 px). El servidor la ajusta al subirla."
+        : "Formato recomendado: 16:9 (1920×1080 px), JPG o PNG. Centra el sujeto principal; al guardar se normaliza a 1920×1080.";
+    }
+
+    if (videoThumbHint) {
+      videoThumbHint.hidden = !isVideo;
     }
   }
 

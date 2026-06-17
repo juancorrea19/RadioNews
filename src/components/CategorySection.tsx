@@ -40,7 +40,7 @@ function CardHorizontal({ item }: { item: NewsItem }) {
   return (
     <ArticleLink item={item} className="block">
       <article className="group flex gap-3 items-start py-3 border-b border-gray-100 last:border-0 cursor-pointer">
-        <div className="relative shrink-0 w-20 h-16 rounded-lg overflow-hidden">
+        <div className="relative shrink-0 w-20 aspect-video rounded-lg overflow-hidden">
           <img
             src={imgSrc(item.image)}
             alt={item.headline}
@@ -67,7 +67,7 @@ function CardVertical({ item, large = false }: { item: NewsItem; large?: boolean
   return (
     <ArticleLink item={item} className="block h-full">
       <article className="group flex flex-col cursor-pointer h-full rounded-xl overflow-hidden bg-[#f2f2f2] shadow-lg hover:shadow-xl transition-shadow duration-300">
-        <div className={`relative w-full overflow-hidden ${large ? 'h-52 md:h-64' : 'h-40'}`}>
+        <div className="relative w-full aspect-video overflow-hidden">
           <img
             src={imgSrc(item.image)}
             alt={item.headline}
@@ -103,15 +103,15 @@ function CardVertical({ item, large = false }: { item: NewsItem; large?: boolean
 function CardOverlay({
   item,
   accent,
-  className = '',
+  className = 'aspect-video w-full',
 }: {
   item: NewsItem
   accent: string
   className?: string
 }) {
   return (
-    <ArticleLink item={item} className="block h-full">
-      <article className={`group relative overflow-hidden rounded-xl cursor-pointer bg-slate-900 h-full ${className}`}>
+    <ArticleLink item={item} className="block">
+      <article className={`group relative overflow-hidden rounded-xl cursor-pointer bg-slate-900 ${className}`}>
         <img
           src={imgSrc(item.image)}
           alt={item.headline}
@@ -146,7 +146,7 @@ function LayoutEditorial({ news }: { news: NewsItem[]; accent: string }) {
   )
 }
 
-const MAG_HEIGHT = 440
+const MAGAZINE_FRAME_CLASS = 'md:aspect-video md:max-h-[min(52vw,500px)]'
 
 function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) {
   if (!news.length) return null
@@ -252,14 +252,12 @@ function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) 
       </div>
 
       <div
-        className="grid grid-cols-1 md:grid-cols-12 rounded-xl overflow-hidden"
+        className={`grid grid-cols-1 md:grid-cols-12 rounded-xl overflow-hidden ${MAGAZINE_FRAME_CLASS}`}
         style={{
           border: `1px solid ${accent}25`,
-          height: MAG_HEIGHT,
-          maxHeight: MAG_HEIGHT,
         }}
       >
-        <div className="md:col-span-5 relative overflow-hidden" style={{ height: MAG_HEIGHT }}>
+        <div className="md:col-span-5 relative aspect-video md:aspect-auto md:h-full min-h-[200px] overflow-hidden">
           {cover ? (
             <ArticleLink item={cover} className="group absolute inset-0 block">
               <img src={imgSrc(cover.image)} alt={cover.headline} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover" />
@@ -304,14 +302,13 @@ function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) 
         </div>
 
         <div
-          className="md:col-span-4 flex flex-col overflow-hidden"
+          className="md:col-span-4 flex flex-col overflow-hidden md:h-full min-h-0"
           style={{
             borderLeft: `1px solid ${accent}20`,
             borderRight: `1px solid ${accent}20`,
-            height: MAG_HEIGHT,
           }}
         >
-          <div className="relative shrink-0 overflow-hidden" style={{ height: 220 }}>
+          <div className="relative shrink-0 overflow-hidden aspect-video md:flex-[1.15] md:min-h-0 md:aspect-auto">
             {lead ? (
               <ArticleLink item={lead} className="group block w-full h-full cursor-pointer">
                 <img
@@ -364,7 +361,7 @@ function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) 
               >
                 {item ? (
                   <ArticleLink item={item} className="group flex gap-3 px-4 py-3 cursor-pointer transition-colors duration-150 hover:bg-white/10 h-full">
-                    <div className="relative shrink-0 w-16 h-14 rounded-md overflow-hidden self-center">
+                    <div className="relative shrink-0 w-20 aspect-video rounded-md overflow-hidden self-center">
                       <img
                         src={imgSrc(item.image)}
                         alt={item.headline}
@@ -392,7 +389,7 @@ function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) 
           </div>
         </div>
 
-        <div className="md:col-span-3 flex flex-col overflow-hidden" style={{ background: 'rgba(255,255,255,0.025)', height: MAG_HEIGHT }}>
+        <div className="md:col-span-3 flex flex-col overflow-hidden md:h-full min-h-0" style={{ background: 'rgba(255,255,255,0.025)' }}>
           <div className="px-4 py-3 shrink-0 flex items-center justify-between" style={{ borderBottom: `1px solid ${accent}20` }}>
             <span className="text-[9px] uppercase tracking-[0.25em] font-bold" style={{ color: accent }}>
               Índice
@@ -531,7 +528,7 @@ function LayoutSpotlight({ news, accent }: { news: NewsItem[]; accent: string })
     <div className="flex flex-col gap-5">
       {hero && (
         <div className="w-full">
-          <CardOverlay item={hero} accent={accent} className="h-80 md:h-96" />
+          <CardOverlay item={hero} accent={accent} />
         </div>
       )}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -593,15 +590,9 @@ const SLUG_LAYOUT_OVERRIDE: Record<string, number> = {
 // ... (mantenemos todo el código anterior de las Cards y Layouts igual)
 
 function resolveLayout(slug: string, index: number): number {
-  // Si el slug tiene un override específico, lo usamos
   if (slug in SLUG_LAYOUT_OVERRIDE) return SLUG_LAYOUT_OVERRIDE[slug];
-  const cycle = [0, 2, 3]
-
-  return cycle[index % cycle.length]
-  // Si pasas un layoutIndex manualmente (como 1 para Magazine), lo respetamos
-  // Si no, hacemos el ciclo automático
-  return index; 
-  
+  const cycle = [0, 2, 3];
+  return cycle[index % cycle.length];
 }
 
 export const CategorySection: React.FC<CategorySectionProps> = ({
