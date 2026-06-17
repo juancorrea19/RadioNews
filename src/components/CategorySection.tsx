@@ -1,6 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react'
 import Logo from '../assets/background.svg'
 import type { NewsItem } from '../data/news'
+import {
+  COVER_BANNER_FRAME,
+  COVER_CARD_FRAME,
+  COVER_HERO_FRAME,
+  COVER_IMG_CLASS,
+  COVER_MAGAZINE_FRAME,
+  COVER_THUMB_FRAME,
+} from '../lib/cover-frames'
 
 interface CategorySectionProps {
   title: string
@@ -40,13 +48,13 @@ function CardHorizontal({ item }: { item: NewsItem }) {
   return (
     <ArticleLink item={item} className="block">
       <article className="group flex gap-3 items-start py-3 border-b border-gray-100 last:border-0 cursor-pointer">
-        <div className="relative shrink-0 w-20 aspect-video rounded-lg overflow-hidden">
+        <div className={COVER_THUMB_FRAME}>
           <img
             src={imgSrc(item.image)}
             alt={item.headline}
             loading="lazy"
             decoding="async"
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            className={`${COVER_IMG_CLASS} transition-transform duration-500 group-hover:scale-110`}
           />
           {item.coverMediaType === 'video' && <VideoBadge />}
           <img src={Logo.src} alt="Radio News" className="absolute top-1 right-1 w-7 h-7 object-contain" />
@@ -67,13 +75,13 @@ function CardVertical({ item, large = false }: { item: NewsItem; large?: boolean
   return (
     <ArticleLink item={item} className="block h-full">
       <article className="group flex flex-col cursor-pointer h-full rounded-xl overflow-hidden bg-[#f2f2f2] shadow-lg hover:shadow-xl transition-shadow duration-300">
-        <div className="relative w-full aspect-video overflow-hidden">
+        <div className={large ? COVER_HERO_FRAME : COVER_CARD_FRAME}>
           <img
             src={imgSrc(item.image)}
             alt={item.headline}
             loading="lazy"
             decoding="async"
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            className={`${COVER_IMG_CLASS} transition-transform duration-700 group-hover:scale-105`}
           />
           {item.coverMediaType === 'video' && <VideoBadge />}
           <img src={Logo.src} alt="Radio News" className="absolute top-2 right-2 w-10 h-10 object-contain" />
@@ -103,7 +111,7 @@ function CardVertical({ item, large = false }: { item: NewsItem; large?: boolean
 function CardOverlay({
   item,
   accent,
-  className = 'aspect-video w-full',
+  className = COVER_BANNER_FRAME,
 }: {
   item: NewsItem
   accent: string
@@ -111,13 +119,13 @@ function CardOverlay({
 }) {
   return (
     <ArticleLink item={item} className="block">
-      <article className={`group relative overflow-hidden rounded-xl cursor-pointer bg-slate-900 ${className}`}>
+      <article className={`group cursor-pointer rounded-xl bg-slate-900 ${className}`}>
         <img
           src={imgSrc(item.image)}
           alt={item.headline}
           loading="lazy"
           decoding="async"
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          className={`${COVER_IMG_CLASS} transition-transform duration-700 group-hover:scale-105`}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-4 flex flex-col gap-1">
@@ -146,7 +154,7 @@ function LayoutEditorial({ news }: { news: NewsItem[]; accent: string }) {
   )
 }
 
-const MAGAZINE_FRAME_CLASS = 'md:aspect-video md:max-h-[min(52vw,500px)]'
+const MAGAZINE_FRAME_CLASS = COVER_MAGAZINE_FRAME
 
 function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) {
   if (!news.length) return null
@@ -260,7 +268,7 @@ function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) 
         <div className="md:col-span-5 relative aspect-video md:aspect-auto md:h-full min-h-[200px] overflow-hidden">
           {cover ? (
             <ArticleLink item={cover} className="group absolute inset-0 block">
-              <img src={imgSrc(cover.image)} alt={cover.headline} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover" />
+              <img src={imgSrc(cover.image)} alt={cover.headline} loading="lazy" decoding="async" className={COVER_IMG_CLASS} />
               <div
                 className="absolute inset-0"
                 style={{
@@ -316,7 +324,7 @@ function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) 
                   alt={lead.headline}
                   loading="lazy"
                   decoding="async"
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  className={`${COVER_IMG_CLASS} transition-transform duration-700 group-hover:scale-105`}
                 />
                 <div
                   className="absolute inset-0"
@@ -361,13 +369,13 @@ function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) 
               >
                 {item ? (
                   <ArticleLink item={item} className="group flex gap-3 px-4 py-3 cursor-pointer transition-colors duration-150 hover:bg-white/10 h-full">
-                    <div className="relative shrink-0 w-20 aspect-video rounded-md overflow-hidden self-center">
+                    <div className={`${COVER_THUMB_FRAME} rounded-md self-center`}>
                       <img
                         src={imgSrc(item.image)}
                         alt={item.headline}
                         loading="lazy"
                         decoding="async"
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        className={`${COVER_IMG_CLASS} transition-transform duration-500 group-hover:scale-110`}
                       />
                     </div>
                     <div className="flex flex-col gap-0.5 min-w-0 justify-center">
