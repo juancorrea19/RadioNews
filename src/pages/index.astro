@@ -10,9 +10,10 @@ import { getCategoriesData } from '../lib/news';
 import { getFlashCarouselSlides, getResolvedAdSlots } from '../lib/site-content';
 import { absoluteSiteUrl, resolveSiteUrl } from '../lib/site-url';
 
-const pageTitle = 'Radio News Online | Noticias de última hora';
+const pageTitle = 'Radio News Online | La noticia a un click';
 const pageDescription =
   'Sigue en Radio News Online las noticias de última hora, el flash informativo y cobertura por categorías en un solo lugar.';
+const shareImage = '/logo-radio-news.png';
 const [categoriesData, flashSlides, adSlots] = await Promise.all([
   getCategoriesData(),
   getFlashCarouselSlides(),
@@ -20,7 +21,7 @@ const [categoriesData, flashSlides, adSlots] = await Promise.all([
 ]);
 const site = resolveSiteUrl(Astro.site, import.meta.env.PUBLIC_SITE_URL);
 const siteUrl = site?.toString();
-const logoUrl = absoluteSiteUrl(site, '/favicon.png');
+const logoUrl = absoluteSiteUrl(site, shareImage);
 const organizationSchema = {
   '@context': 'https://schema.org',
   '@type': 'NewsMediaOrganization',
@@ -47,6 +48,7 @@ const websiteSchema = {
   title={pageTitle}
   description={pageDescription}
   canonical="/"
+  image={shareImage}
   jsonLd={[organizationSchema, websiteSchema]}
 >
   <div class="min-h-screen flex flex-col overflow-x-hidden text-white" style="background-color: #041d3d;">
