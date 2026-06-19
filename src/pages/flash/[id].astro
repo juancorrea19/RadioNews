@@ -12,6 +12,8 @@ import {
 } from '../../lib/site-content';
 import { getPublishedFlashSlideById } from '../../lib/server/site-cms';
 import { isSupabaseConfigured } from '../../lib/server/supabase';
+import { newsArticleJsonLd } from '../../lib/seo-jsonld';
+import { resolveSiteUrl } from '../../lib/site-url';
 
 export const prerender = false;
 
@@ -50,6 +52,16 @@ const paragraphs = splitBody(slide.body);
 const articleSummary = paragraphs[0] ?? slide.title;
 const coverImage = slide.image_url;
 const canonical = flashArticleHref(slide.id);
+const site = resolveSiteUrl(Astro.site, import.meta.env.PUBLIC_SITE_URL);
+const flashJsonLd = newsArticleJsonLd({
+  site,
+  headline: slide.title,
+  description: articleSummary,
+  canonicalPath: canonical,
+  image: coverImage,
+  datePublished: slide.created_at,
+  dateModified: slide.updated_at ?? slide.created_at,
+});
 ---
 
 <Layout
@@ -58,6 +70,7 @@ const canonical = flashArticleHref(slide.id);
   canonical={canonical}
   image={coverImage}
   type="article"
+  jsonLd={flashJsonLd}
 >
   <div class="min-h-screen flex flex-col overflow-x-hidden text-white" style="background-color: #041d3d;">
     <Header />

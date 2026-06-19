@@ -8,6 +8,8 @@ import { render } from 'astro:content';
 import { findNewsItem, getCrossCategoryNews, getRelatedNews } from '../../../lib/news';
 import { isPosterImage, videoMimeTypeFromUrl } from '../../../lib/news-video';
 import { getResolvedAdSlots } from '../../../lib/site-content';
+import { newsArticleJsonLd } from '../../../lib/seo-jsonld';
+import { resolveSiteUrl } from '../../../lib/site-url';
 
 /** Rutas resueltas en cada peticion para incluir noticias nuevas en Supabase sin redeploy. */
 export const prerender = false;
@@ -43,14 +45,27 @@ const articleVideoMime = rawVideoUrl ? videoMimeTypeFromUrl(rawVideoUrl) : 'vide
 const videoPoster = isPosterImage(articleImage) ? articleImage : undefined;
 const renderedArticle = article.entry ? await render(article.entry) : null;
 const Content = renderedArticle?.Content;
+const site = resolveSiteUrl(Astro.site, import.meta.env.PUBLIC_SITE_URL);
+const canonicalPath = `/noticia/${categorySlug}/${articleSlug}/`;
+const articleJsonLd = newsArticleJsonLd({
+  site,
+  headline: article.headline,
+  description: articleSummary,
+  canonicalPath,
+  image: articleImage,
+  author: article.author,
+  datePublished: article.publishedAt,
+  dateModified: article.publishedAt,
+});
 ---
 
 <Layout
   title={`${article.headline} | Radio News Online`}
   description={articleSummary}
-  canonical={`/noticia/${categorySlug}/${articleSlug}`}
+  canonical={canonicalPath}
   image={articleImage}
   type="article"
+  jsonLd={articleJsonLd}
 >
   <div class="min-h-screen flex flex-col overflow-x-hidden text-white" style="background-color: #041d3d;">
     <Header />

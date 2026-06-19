@@ -8,6 +8,7 @@ import { NewsCategoriesGrid } from '../components/NewsCategoriesGrid.tsx';
 import Footer from '../components/footer.astro';
 import { getCategoriesData } from '../lib/news';
 import { getFlashCarouselSlides, getResolvedAdSlots } from '../lib/site-content';
+import { absoluteSiteUrl, resolveSiteUrl } from '../lib/site-url';
 
 const pageTitle = 'Radio News Online | Noticias de última hora';
 const pageDescription =
@@ -17,9 +18,9 @@ const [categoriesData, flashSlides, adSlots] = await Promise.all([
   getFlashCarouselSlides(),
   getResolvedAdSlots(),
 ]);
-const site = Astro.site ?? (import.meta.env.PUBLIC_SITE_URL ? new URL(import.meta.env.PUBLIC_SITE_URL) : undefined);
+const site = resolveSiteUrl(Astro.site, import.meta.env.PUBLIC_SITE_URL);
 const siteUrl = site?.toString();
-const logoUrl = site ? new URL('/favicon.png', site).toString() : undefined;
+const logoUrl = absoluteSiteUrl(site, '/favicon.png');
 const organizationSchema = {
   '@context': 'https://schema.org',
   '@type': 'NewsMediaOrganization',

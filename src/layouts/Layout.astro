@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import RadioPlayer from '../components/RadioPlayer';
 import { SHOW_RADIO_PLAYER } from '../lib/site-features';
+import { resolveSiteUrl } from '../lib/site-url';
 
 export interface Props {
   title?: string;
@@ -22,7 +23,7 @@ const {
   jsonLd,
 } = Astro.props;
 
-const site = Astro.site ?? (import.meta.env.PUBLIC_SITE_URL ? new URL(import.meta.env.PUBLIC_SITE_URL) : undefined);
+const site = resolveSiteUrl(Astro.site, import.meta.env.PUBLIC_SITE_URL);
 const canonicalUrl =
   site && canonical
     ? new URL(canonical, site).toString()
