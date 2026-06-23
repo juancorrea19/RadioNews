@@ -20,6 +20,130 @@ interface CategorySectionProps {
   slug?: string
 }
 
+const ROTATION_INTERVAL_MS = 5500
+
+function useRotatingEditions(news: NewsItem[], editionSize: number) {
+  const total = Math.max(1, Math.ceil(news.length / editionSize))
+  const [current, setCurrent] = useState(0)
+  const autoRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const pausedRef = useRef(false)
+
+  const editions: NewsItem[][] = Array.from({ length: total }, (_, index) =>
+    news.slice(index * editionSize, index * editionSize + editionSize),
+  )
+
+  const goTo = (nextIndex: number) => setCurrent((nextIndex + total) % total)
+
+  useEffect(() => {
+    if (total <= 1) return
+
+    const tick = () => {
+      if (!pausedRef.current) setCurrent((value) => (value + 1) % total)
+    }
+
+    autoRef.current = setInterval(tick, ROTATION_INTERVAL_MS)
+    return () => {
+      if (autoRef.current) clearInterval(autoRef.current)
+    }
+  }, [total])
+
+  const pauseProps = {
+    onMouseEnter: () => {
+      pausedRef.current = true
+    },
+    onMouseLeave: () => {
+      pausedRef.current = false
+    },
+  }
+
+  return {
+    editions,
+    edition: editions[current] ?? [],
+    current,
+    total,
+    goTo,
+    pauseProps,
+  }
+}
+
+function RotationControls({
+  accent,
+  current,
+  total,
+  editions,
+  goTo,
+  label = 'Rotación',
+}: {
+  accent: string
+  current: number
+  total: number
+  editions: NewsItem[][]
+  goTo: (index: number) => void
+  label?: string
+}) {
+  if (total <= 1) return null
+
+  return (
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 px-3 py-1 rounded-sm" style={{ background: accent, color: '#fff' }}>
+          <span className="text-[9px] uppercase tracking-[0.2em] font-bold">{label}</span>
+          <span className="text-[13px] font-newsreader font-bold">{String(current + 1).padStart(2, '0')}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          {editions.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => goTo(index)}
+              aria-label={`${label} ${index + 1}`}
+              style={{
+                width: index === current ? 18 : 5,
+                height: 5,
+                borderRadius: 99,
+                background: index === current ? accent : `${accent}35`,
+                border: 'none',
+                padding: 0,
+                cursor: 'pointer',
+                transition: 'width 0.35s ease, background 0.35s ease',
+                flexShrink: 0,
+              }}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="flex gap-1">
+        {([
+          ['‹', -1],
+          ['›', 1],
+        ] as const).map(([arrow, direction]) => (
+          <button
+            key={direction}
+            onClick={() => goTo(current + direction)}
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 4,
+              background: accent,
+              border: `2px solid ${accent}50`,
+              color: 'white',
+              cursor: 'pointer',
+              fontSize: 22,
+              lineHeight: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontFamily: 'Georgia, serif',
+            }}
+          >
+            {arrow}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function imgSrc(image: NewsItem['image']): string {
   return typeof image === 'string' ? image : image.src
 }
@@ -169,15 +293,24 @@ function CardOverlay({
   )
 }
 
-function LayoutEditorial({ news }: { news: NewsItem[]; accent: string }) {
-  const [hero, ...rest] = news
+function LayoutEditorial({ news, accent }: { news: NewsItem[]; accent: string }) {
+  if (!news.length) return null
+
+  const editionSize = 5
+  const { edition, current, total, editions, goTo, pauseProps } = useRotatingEditions(news, editionSize)
+  const hero = edition[0]
+  const rest = edition.slice(1, 5)
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div className="md:col-span-2">{hero && <CardVertical item={hero} large />}</div>
-      <div className="flex flex-col border-l border-white/10 pl-6 bg-[#f2f2f2] rounded-xl p-4">
-        {rest.slice(0, 4).map((item) => (
-          <CardHorizontal key={item.slug} item={item} />
-        ))}
+    <div className="w-full" {...pauseProps}>
+      <RotationControls accent={accent} current={current} total={total} editions={editions} goTo={goTo} />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-2">{hero && <CardVertical item={hero} large />}</div>
+        <div className="flex flex-col border-l border-white/10 pl-6 bg-[#f2f2f2] rounded-xl p-4">
+          {rest.map((item) => (
+            <CardHorizontal key={item.slug} item={item} />
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -189,31 +322,7 @@ function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) 
   if (!news.length) return null
 
   const editionSize = 4
-  const total = Math.ceil(news.length / editionSize)
-  const [current, setCurrent] = useState(0)
-  const autoRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const pausedRef = useRef(false)
-
-  const editions: NewsItem[][] = Array.from({ length: total }, (_, index) =>
-    news.slice(index * editionSize, index * editionSize + editionSize),
-  )
-
-  const goTo = (nextIndex: number) => setCurrent((nextIndex + total) % total)
-
-  useEffect(() => {
-    if (total <= 1) return
-
-    const tick = () => {
-      if (!pausedRef.current) setCurrent((value) => (value + 1) % total)
-    }
-
-    autoRef.current = setInterval(tick, 5500)
-    return () => {
-      if (autoRef.current) clearInterval(autoRef.current)
-    }
-  }, [total])
-
-  const edition = editions[current] ?? []
+  const { editions, edition, current, total, goTo, pauseProps } = useRotatingEditions(news, editionSize)
   const cover = edition[0]
   const lead = edition[1]
   const side1 = edition[2]
@@ -221,72 +330,15 @@ function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) 
   const tickerItems = [...news, ...news]
 
   return (
-    <div
-      className="w-full"
-      onMouseEnter={() => {
-        pausedRef.current = true
-      }}
-      onMouseLeave={() => {
-        pausedRef.current = false
-      }}
-    >
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1 rounded-sm" style={{ background: accent, color: '#fff' }}>
-            <span className="text-[9px] uppercase tracking-[0.2em] font-bold">Edición</span>
-            <span className="text-[13px] font-newsreader font-bold">{String(current + 1).padStart(2, '0')}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            {editions.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => goTo(index)}
-                aria-label={`Edición ${index + 1}`}
-                style={{
-                  width: index === current ? 18 : 5,
-                  height: 5,
-                  borderRadius: 99,
-                  background: index === current ? accent : `${accent}35`,
-                  border: 'none',
-                  padding: 0,
-                  cursor: 'pointer',
-                  transition: 'width 0.35s ease, background 0.35s ease',
-                  flexShrink: 0,
-                }}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div className="flex gap-1">
-          {([
-            ['‹', -1],
-            ['›', 1],
-          ] as const).map(([label, direction]) => (
-            <button
-              key={direction}
-              onClick={() => goTo(current + direction)}
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 4,
-                background:accent,  
-                border: `2px solid ${accent}50`,
-                color: 'white',
-                cursor: 'pointer',
-                fontSize: 22,
-                lineHeight: 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontFamily: 'Georgia, serif',
-              }}             
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
+    <div className="w-full" {...pauseProps}>
+      <RotationControls
+        accent={accent}
+        current={current}
+        total={total}
+        editions={editions}
+        goTo={goTo}
+        label="Edición"
+      />
 
       <div
         className={`grid grid-cols-1 md:grid-cols-12 rounded-xl overflow-hidden ${MAGAZINE_FRAME_CLASS}`}
@@ -559,43 +611,55 @@ function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) 
 }
 
 function LayoutSpotlight({ news, accent }: { news: NewsItem[]; accent: string }) {
-  const [hero, ...rest] = news
-  const sideCards = rest.slice(0, 4)
+  if (!news.length) return null
+
+  const editionSize = 5
+  const { edition, current, total, editions, goTo, pauseProps } = useRotatingEditions(news, editionSize)
+  const hero = edition[0]
+  const sideCards = edition.slice(1, 5)
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 items-stretch">
-      {hero && (
-        <div className="h-full min-h-[220px]">
-          <CardOverlay item={hero} accent={accent} className={COVER_BANNER_SPOTLIGHT_FRAME} />
-        </div>
-      )}
-      {sideCards.length > 0 && (
-        <div className="grid grid-cols-2 grid-rows-2 gap-3 h-full min-h-[320px] md:min-h-0">
-          {sideCards.map((item) => (
-            <div key={item.slug} className="min-h-0 h-full">
-              <CardVertical item={item} compact />
-            </div>
-          ))}
-        </div>
-      )}
+    <div className="w-full" {...pauseProps}>
+      <RotationControls accent={accent} current={current} total={total} editions={editions} goTo={goTo} />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 items-stretch">
+        {hero && (
+          <div className="h-full min-h-[220px]">
+            <CardOverlay item={hero} accent={accent} className={COVER_BANNER_SPOTLIGHT_FRAME} />
+          </div>
+        )}
+        {sideCards.length > 0 && (
+          <div className="grid grid-cols-2 grid-rows-2 gap-3 h-full min-h-[320px] md:min-h-0">
+            {sideCards.map((item) => (
+              <div key={item.slug} className="min-h-0 h-full">
+                <CardVertical item={item} compact />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
 
-function LayoutStream({ news }: { news: NewsItem[]; accent: string }) {
-  const trackRef = useRef<HTMLDivElement>(null)
+function LayoutStream({ news, accent }: { news: NewsItem[]; accent: string }) {
+  if (!news.length) return null
+
+  const editionSize = 4
+  const { edition, current, total, editions, goTo, pauseProps } = useRotatingEditions(news, editionSize)
 
   return (
-    <div>
-      <div ref={trackRef} className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide md:hidden">
-        {news.map((item) => (
+    <div className="w-full" {...pauseProps}>
+      <RotationControls accent={accent} current={current} total={total} editions={editions} goTo={goTo} />
+      <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide md:hidden">
+        {edition.map((item) => (
           <div key={item.slug} className="snap-center shrink-0 w-64">
             <CardVertical item={item} />
           </div>
         ))}
       </div>
       <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-5">
-        {news.map((item) => (
+        {edition.map((item) => (
           <CardVertical key={item.slug} item={item} />
         ))}
       </div>
