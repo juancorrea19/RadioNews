@@ -541,12 +541,9 @@ function LayoutSpotlight({ news, accent }: { news: NewsItem[]; accent: string })
         </div>
       )}
       {sideCards.length > 0 && (
-        <div className="flex-1 min-w-0 -mb-4 sm:mb-0">
-          {sideCards.map((item, index) => (
-            <div
-              key={item.slug}
-              className={`inline-block w-full sm:w-[calc(50%-0.5rem)] align-top mb-4 ${index === 0 ? 'sm:mr-4' : ''}`}
-            >
+        <div className="flex flex-col gap-4 flex-1 min-w-0">
+          {sideCards.map((item) => (
+            <div key={item.slug} className="block w-full">
               <CardVertical item={item} />
             </div>
           ))}
