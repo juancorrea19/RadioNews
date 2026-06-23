@@ -531,19 +531,27 @@ function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) 
 
 function LayoutSpotlight({ news, accent }: { news: NewsItem[]; accent: string }) {
   const [hero, ...rest] = news
+  const sideCards = rest.slice(0, 2)
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col md:flex-row md:items-start gap-4 md:gap-5">
       {hero && (
-        <div className="w-full">
+        <div className="block shrink-0 w-full md:w-auto">
           <CardOverlay item={hero} accent={accent} />
         </div>
       )}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {rest.slice(0, 3).map((item) => (
-          <CardVertical key={item.slug} item={item} />
-        ))}
-      </div>
+      {sideCards.length > 0 && (
+        <div className="flex-1 min-w-0 -mb-4 sm:mb-0">
+          {sideCards.map((item, index) => (
+            <div
+              key={item.slug}
+              className={`inline-block w-full sm:w-[calc(50%-0.5rem)] align-top mb-4 ${index === 0 ? 'sm:mr-4' : ''}`}
+            >
+              <CardVertical item={item} />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
