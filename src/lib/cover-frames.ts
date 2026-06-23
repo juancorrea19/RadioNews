@@ -13,7 +13,7 @@ export const COVER_HERO_FRAME =
   "relative w-full overflow-hidden aspect-video max-h-64 md:max-h-72";
 
 export const COVER_BANNER_FRAME =
-  "relative overflow-hidden aspect-video w-full max-h-80 md:max-h-96";
+  "relative overflow-hidden aspect-video w-full max-w-xl md:max-w-2xl mx-auto";
 
 export const COVER_ARTICLE_FRAME =
   "relative aspect-video w-full max-h-[min(72vh,720px)] overflow-hidden";
