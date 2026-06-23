@@ -3,6 +3,7 @@ import Logo from '../assets/background.svg'
 import type { NewsItem } from '../data/news'
 import {
   COVER_BANNER_FRAME,
+  COVER_BANNER_SPOTLIGHT_FRAME,
   COVER_CARD_FRAME,
   COVER_HERO_FRAME,
   COVER_IMG_CLASS,
@@ -118,8 +119,8 @@ function CardOverlay({
   className?: string
 }) {
   return (
-    <ArticleLink item={item} className="block">
-      <article className={`group cursor-pointer rounded-xl bg-slate-900 ${className}`}>
+    <ArticleLink item={item} className="block h-full">
+      <article className={`group cursor-pointer rounded-xl bg-slate-900 h-full ${className}`}>
         <img
           src={imgSrc(item.image)}
           alt={item.headline}
@@ -534,16 +535,16 @@ function LayoutSpotlight({ news, accent }: { news: NewsItem[]; accent: string })
   const sideCards = rest.slice(0, 2)
 
   return (
-    <div className="flex flex-col md:flex-row md:items-start gap-4 md:gap-5">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 items-stretch">
       {hero && (
-        <div className="block shrink-0 w-full md:w-auto">
-          <CardOverlay item={hero} accent={accent} />
+        <div className="h-full min-h-[220px]">
+          <CardOverlay item={hero} accent={accent} className={COVER_BANNER_SPOTLIGHT_FRAME} />
         </div>
       )}
       {sideCards.length > 0 && (
-        <div className="flex flex-col gap-4 flex-1 min-w-0">
+        <div className="flex flex-col gap-4 h-full">
           {sideCards.map((item) => (
-            <div key={item.slug} className="block w-full">
+            <div key={item.slug} className="flex-1 min-h-0">
               <CardVertical item={item} />
             </div>
           ))}
