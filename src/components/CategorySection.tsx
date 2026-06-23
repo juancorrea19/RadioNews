@@ -4,6 +4,7 @@ import type { NewsItem } from '../data/news'
 import {
   COVER_BANNER_FRAME,
   COVER_BANNER_SPOTLIGHT_FRAME,
+  COVER_SPOTLIGHT_GRID_FRAME,
   COVER_CARD_FRAME,
   COVER_HERO_FRAME,
   COVER_IMG_CLASS,
@@ -72,11 +73,25 @@ function CardHorizontal({ item }: { item: NewsItem }) {
   )
 }
 
-function CardVertical({ item, large = false }: { item: NewsItem; large?: boolean }) {
+function CardVertical({
+  item,
+  large = false,
+  compact = false,
+}: {
+  item: NewsItem
+  large?: boolean
+  compact?: boolean
+}) {
+  const imageFrame = large
+    ? COVER_HERO_FRAME
+    : compact
+      ? COVER_SPOTLIGHT_GRID_FRAME
+      : COVER_CARD_FRAME
+
   return (
     <ArticleLink item={item} className="block h-full">
       <article className="group flex flex-col cursor-pointer h-full rounded-xl overflow-hidden bg-[#f2f2f2] shadow-lg hover:shadow-xl transition-shadow duration-300">
-        <div className={large ? COVER_HERO_FRAME : COVER_CARD_FRAME}>
+        <div className={imageFrame}>
           <img
             src={imgSrc(item.image)}
             alt={item.headline}
@@ -85,16 +100,28 @@ function CardVertical({ item, large = false }: { item: NewsItem; large?: boolean
             className={`${COVER_IMG_CLASS} transition-transform duration-700 group-hover:scale-105`}
           />
           {item.coverMediaType === 'video' && <VideoBadge />}
-          <img src={Logo.src} alt="Radio News" className="absolute top-2 right-2 w-10 h-10 object-contain" />
+          <img
+            src={Logo.src}
+            alt="Radio News"
+            className={`absolute top-2 right-2 object-contain ${compact ? 'w-6 h-6' : 'w-10 h-10'}`}
+          />
         </div>
-        <div className="flex flex-col gap-1 p-4">
-          <div className="flex items-center gap-2">
-            <span className="rounded-full bg-[#a62b2b]/90 px-3 py-1 text-[8px] uppercase tracking-[0.18em] text-white w-fit">{item.category}</span>
-            <span className="text-[10px] text-gray-300">·</span>
-            <span className="text-[15px] text-gray-600">{item.timeAgo}</span>
+        <div className={`flex flex-col gap-1 shrink-0 ${compact ? 'p-2' : 'p-4'}`}>
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="rounded-full bg-[#a62b2b]/90 px-2 py-0.5 text-[7px] uppercase tracking-[0.18em] text-white w-fit truncate">
+              {item.category}
+            </span>
+            {!compact && (
+              <>
+                <span className="text-[10px] text-gray-300">·</span>
+                <span className="text-[15px] text-gray-600">{item.timeAgo}</span>
+              </>
+            )}
           </div>
           <h3
-            className={`font-newsreader font-bold text-slate-900 leading-tight group-hover:text-[#a62b2b] transition-colors ${large ? 'text-[18px] md:text-[22px]' : 'text-[14px]'}`}
+            className={`font-newsreader font-bold text-slate-900 leading-tight group-hover:text-[#a62b2b] transition-colors ${
+              large ? 'text-[18px] md:text-[22px]' : compact ? 'text-[12px] line-clamp-2' : 'text-[14px]'
+            }`}
           >
             {item.headline}
           </h3>
@@ -103,6 +130,7 @@ function CardVertical({ item, large = false }: { item: NewsItem; large?: boolean
               {item.excerpt}
             </p>
           )}
+          {compact && <span className="text-[11px] text-gray-600">{item.timeAgo}</span>}
         </div>
       </article>
     </ArticleLink>
@@ -542,10 +570,10 @@ function LayoutSpotlight({ news, accent }: { news: NewsItem[]; accent: string })
         </div>
       )}
       {sideCards.length > 0 && (
-        <div className="flex flex-col gap-3 h-full">
+        <div className="grid grid-cols-2 grid-rows-2 gap-3 h-full min-h-[320px] md:min-h-0">
           {sideCards.map((item) => (
-            <div key={item.slug} className="flex-1 min-h-0">
-              <CardVertical item={item} />
+            <div key={item.slug} className="min-h-0 h-full">
+              <CardVertical item={item} compact />
             </div>
           ))}
         </div>

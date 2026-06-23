@@ -18,6 +18,9 @@ export const COVER_BANNER_FRAME =
 export const COVER_BANNER_SPOTLIGHT_FRAME =
   "relative overflow-hidden w-full h-full min-h-[220px]";
 
+export const COVER_SPOTLIGHT_GRID_FRAME =
+  "relative w-full flex-1 min-h-[72px] overflow-hidden";
+
 export const COVER_ARTICLE_FRAME =
   "relative aspect-video w-full max-h-[min(72vh,720px)] overflow-hidden";
 
