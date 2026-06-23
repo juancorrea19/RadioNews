@@ -532,7 +532,7 @@ function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) 
 
 function LayoutSpotlight({ news, accent }: { news: NewsItem[]; accent: string }) {
   const [hero, ...rest] = news
-  const sideCards = rest.slice(0, 2)
+  const sideCards = rest.slice(0, 4)
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 items-stretch">
@@ -542,7 +542,7 @@ function LayoutSpotlight({ news, accent }: { news: NewsItem[]; accent: string })
         </div>
       )}
       {sideCards.length > 0 && (
-        <div className="flex flex-col gap-4 h-full">
+        <div className="flex flex-col gap-3 h-full">
           {sideCards.map((item) => (
             <div key={item.slug} className="flex-1 min-h-0">
               <CardVertical item={item} />
