@@ -378,7 +378,7 @@ function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) 
           border: `1px solid ${accent}25`,
         }}
       >
-        <div className="md:col-span-5 relative aspect-video md:aspect-auto md:h-full min-h-[200px] overflow-hidden">
+        <div className="md:col-span-5 relative aspect-video md:aspect-auto md:h-full min-h-[200px] overflow-hidden bg-[#041d3d]">
           {cover ? (
             <ArticleLink item={cover} className="group absolute inset-0 block">
               <CoverMedia item={cover} className={COVER_IMG_CLASS} />
@@ -430,7 +430,7 @@ function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) 
             borderRight: `1px solid ${accent}20`,
           }}
         >
-          <div className="relative shrink-0 overflow-hidden aspect-video md:flex-[1.15] md:min-h-0 md:aspect-auto">
+          <div className="relative shrink-0 overflow-hidden aspect-video md:flex-[1.15] md:min-h-0 md:aspect-auto bg-[#041d3d]">
             {lead ? (
               <ArticleLink item={lead} className="group block w-full h-full cursor-pointer">
                 <CoverMedia

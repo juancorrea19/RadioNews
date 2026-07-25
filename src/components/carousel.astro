@@ -44,11 +44,11 @@ const { slides } = Astro.props;
                     aria-label={`Noticia ${i + 1} de ${slides.length}`}
                     data-slide-index={i}
                   >
-                    <div class="group relative aspect-square w-full overflow-hidden rounded-[2rem] border-[4px] border-white/20 shadow-2xl sm:aspect-video md:aspect-[21/9] md:border-[6px]">
+                    <div class="group relative aspect-square w-full overflow-hidden rounded-[2rem] border-[4px] border-white/20 bg-[#041d3d] shadow-2xl sm:aspect-video md:aspect-[21/9] md:border-[6px]">
                       <img
                         src={slide.imagenUrl}
                         alt={slide.imagenAlt}
-                        class="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        class="absolute inset-0 h-full w-full object-contain transition-transform duration-700 group-hover:scale-105"
                         loading={i === 0 ? "eager" : "lazy"}
                         decoding="async"
                       />

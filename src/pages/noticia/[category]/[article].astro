@@ -120,17 +120,17 @@ const articleJsonLd = newsArticleJsonLd({
                     class={COVER_IMG_CLASS}
                   />
                   <div class="absolute inset-0 bg-gradient-to-t from-[#041d3d] via-[#041d3d]/45 to-transparent pointer-events-none"></div>
-                  <div class="absolute inset-x-0 bottom-0 hidden p-6 pointer-events-none md:block md:p-10">
-                    <div class="flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.2em]">
-                      <span class="tag-brand rounded-full px-4 py-1.5 font-semibold">{article.category}</span>
+                  <div class="absolute inset-x-0 bottom-0 hidden pointer-events-none md:block md:p-8">
+                    <div class="flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-[0.2em]">
+                      <span class="tag-brand rounded-full px-3 py-1 font-semibold">{article.category}</span>
                       <span class="text-white/65">{article.timeAgo}</span>
                     </div>
 
-                    <h1 class="mt-5 max-w-4xl font-newsreader text-4xl leading-tight text-white md:text-6xl">
+                    <h1 class="mt-3 max-w-2xl font-newsreader text-2xl leading-tight text-white md:text-3xl lg:text-4xl">
                       {article.headline}
                     </h1>
 
-                    <p class="mt-4 max-w-3xl text-base leading-7 text-white/82 md:text-lg">
+                    <p class="mt-2 max-w-xl text-sm leading-6 text-white/82 md:text-base">
                       {articleSummary}
                     </p>
                   </div>
@@ -202,14 +202,14 @@ const articleJsonLd = newsArticleJsonLd({
                       muted
                       playsinline
                       preload="metadata"
-                      class="h-20 w-24 rounded-2xl object-cover"
+                      class="h-20 w-24 shrink-0 rounded-2xl bg-[#041d3d] object-contain"
                       aria-label={item.headline}
                     />
                   ) : (
                     <img
                       src={imageSrc || '/favicon.png'}
                       alt={item.headline}
-                      class="h-20 w-24 rounded-2xl object-cover"
+                      class="h-20 w-24 shrink-0 rounded-2xl bg-[#041d3d] object-contain"
                     />
                   )}
                   <div class="min-w-0">
@@ -249,21 +249,21 @@ const articleJsonLd = newsArticleJsonLd({
               href={item.href}
               class="group overflow-hidden rounded-[24px] border border-white/10 bg-[#06172f] transition-transform duration-300 hover:-translate-y-1"
             >
-              <div class="relative h-52 overflow-hidden">
+              <div class="relative h-52 overflow-hidden bg-[#041d3d]">
                 {showVideo && item.videoUrl ? (
                   <video
                     src={item.videoUrl}
                     muted
                     playsinline
                     preload="metadata"
-                    class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    class="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
                     aria-label={item.headline}
                   />
                 ) : (
                   <img
                     src={imageSrc || '/favicon.png'}
                     alt={item.headline}
-                    class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    class="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
                   />
                 )}
                 <div class="absolute inset-0 bg-gradient-to-t from-[#041d3d] via-transparent to-transparent"></div>

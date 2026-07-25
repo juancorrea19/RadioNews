@@ -1,28 +1,29 @@
 /** Clases compartidas para marcos de portada (16:9 con tope de altura). */
 
+/** object-contain + fondo de marca para que la imagen se vea completa, sin recortes. */
 export const COVER_IMG_CLASS =
-  "absolute inset-0 h-full w-full object-cover object-center";
+  "absolute inset-0 h-full w-full object-contain object-center bg-[#041d3d]";
 
 export const COVER_THUMB_FRAME =
-  "relative shrink-0 w-20 aspect-video overflow-hidden rounded-lg";
+  "relative shrink-0 w-20 aspect-video overflow-hidden rounded-lg bg-[#041d3d]";
 
 export const COVER_CARD_FRAME =
-  "relative w-full overflow-hidden aspect-video max-h-44 md:max-h-48";
+  "relative w-full overflow-hidden aspect-video max-h-44 md:max-h-48 bg-[#041d3d]";
 
 export const COVER_HERO_FRAME =
-  "relative w-full overflow-hidden aspect-video max-h-64 md:max-h-72";
+  "relative w-full overflow-hidden aspect-video max-h-64 md:max-h-72 bg-[#041d3d]";
 
 export const COVER_BANNER_FRAME =
-  "relative overflow-hidden aspect-video w-full max-w-xl md:max-w-2xl";
+  "relative overflow-hidden aspect-video w-full max-w-xl md:max-w-2xl bg-[#041d3d]";
 
 export const COVER_BANNER_SPOTLIGHT_FRAME =
-  "relative overflow-hidden w-full h-full min-h-[220px]";
+  "relative overflow-hidden w-full h-full min-h-[220px] bg-[#041d3d]";
 
 export const COVER_SPOTLIGHT_GRID_FRAME =
-  "relative w-full flex-1 min-h-[72px] overflow-hidden";
+  "relative w-full flex-1 min-h-[72px] overflow-hidden bg-[#041d3d]";
 
 export const COVER_ARTICLE_FRAME =
-  "relative aspect-video w-full max-h-[min(72vh,720px)] overflow-hidden";
+  "relative aspect-video w-full max-h-[min(72vh,720px)] overflow-hidden bg-[#041d3d]";
 
 export const COVER_MAGAZINE_FRAME =
   "md:aspect-video md:max-h-[min(48vw,440px)]";
