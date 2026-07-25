@@ -101,8 +101,6 @@ async function getCmsNews(): Promise<ResolvedNewsItem[]> {
     .sort((a, b) => (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0));
 }
 
-const VIDEO_CARD_PLACEHOLDER = "/favicon.png";
-
 function mapSupabaseNewsBase(
   record: NewsArticleListingRecord | NewsArticleRecord,
 ): Omit<ResolvedNewsItem, "content"> {
@@ -110,8 +108,9 @@ function mapSupabaseNewsBase(
   const meta = NEWS_CATEGORY_META[categorySlug];
   const publishedAt = new Date(record.published_at);
   const isVideo = Boolean(record.cover_video_url?.trim());
-  const cardImage =
-    record.cover_image_url ?? (isVideo ? VIDEO_CARD_PLACEHOLDER : "/favicon.png");
+  const coverImage = record.cover_image_url?.trim() || "";
+  // Sin miniatura: no usar el logo; el listado mostrará el video
+  const cardImage = coverImage || (isVideo ? "" : "/favicon.png");
 
   return {
     id: record.id,

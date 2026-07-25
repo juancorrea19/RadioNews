@@ -20,5 +20,21 @@ export function videoMimeTypeFromUrl(url: string): string {
 }
 
 export function isPosterImage(imageUrl: string): boolean {
-  return Boolean(imageUrl) && imageUrl !== "/favicon.png";
+  if (!imageUrl?.trim()) {
+    return false;
+  }
+
+  const path = imageUrl.split("?")[0] ?? imageUrl;
+  const normalized = path.toLowerCase();
+
+  // Placeholders del sitio (logo / favicon), no son miniatura real del video
+  if (
+    normalized === "/favicon.png" ||
+    normalized.endsWith("/favicon.png") ||
+    normalized.includes("logo-radio-news")
+  ) {
+    return false;
+  }
+
+  return true;
 }

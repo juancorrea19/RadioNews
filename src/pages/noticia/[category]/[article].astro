@@ -170,16 +170,31 @@ const articleJsonLd = newsArticleJsonLd({
             </div>
 
             <div class="mt-5 space-y-4">
-              {relatedNews.map((item) => (
+              {relatedNews.map((item) => {
+                const imageSrc = typeof item.image === 'string' ? item.image : item.image.src;
+                const showVideo =
+                  item.coverMediaType === 'video' && Boolean(item.videoUrl) && !isPosterImage(imageSrc);
+                return (
                 <a
                   href={item.href}
                   class="group flex gap-3 rounded-[22px] border border-white/8 bg-[#06172f] p-3 transition-colors hover:bg-[#0a2143]"
                 >
-                  <img
-                    src={typeof item.image === 'string' ? item.image : item.image.src}
-                    alt={item.headline}
-                    class="h-20 w-24 rounded-2xl object-cover"
-                  />
+                  {showVideo && item.videoUrl ? (
+                    <video
+                      src={item.videoUrl}
+                      muted
+                      playsinline
+                      preload="metadata"
+                      class="h-20 w-24 rounded-2xl object-cover"
+                      aria-label={item.headline}
+                    />
+                  ) : (
+                    <img
+                      src={imageSrc || '/favicon.png'}
+                      alt={item.headline}
+                      class="h-20 w-24 rounded-2xl object-cover"
+                    />
+                  )}
                   <div class="min-w-0">
                     <span class="text-[10px] uppercase tracking-[0.16em] text-white/90">{item.category}</span>
                     <h3 class="mt-2 font-newsreader text-lg leading-6 text-white transition-colors group-hover:text-[#ffd2d2]">
@@ -188,7 +203,8 @@ const articleJsonLd = newsArticleJsonLd({
                     <p class="mt-2 text-xs uppercase tracking-[0.14em] text-white/60">{item.timeAgo}</p>
                   </div>
                 </a>
-              ))}
+                );
+              })}
             </div>
 
             <div class="mt-5">
@@ -207,17 +223,32 @@ const articleJsonLd = newsArticleJsonLd({
         </div>
 
         <div class="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-          {differentCategoryNews.map((item) => (
+          {differentCategoryNews.map((item) => {
+            const imageSrc = typeof item.image === 'string' ? item.image : item.image.src;
+            const showVideo =
+              item.coverMediaType === 'video' && Boolean(item.videoUrl) && !isPosterImage(imageSrc);
+            return (
             <a
               href={item.href}
               class="group overflow-hidden rounded-[24px] border border-white/10 bg-[#06172f] transition-transform duration-300 hover:-translate-y-1"
             >
               <div class="relative h-52 overflow-hidden">
-                <img
-                  src={typeof item.image === 'string' ? item.image : item.image.src}
-                  alt={item.headline}
-                  class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
+                {showVideo && item.videoUrl ? (
+                  <video
+                    src={item.videoUrl}
+                    muted
+                    playsinline
+                    preload="metadata"
+                    class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    aria-label={item.headline}
+                  />
+                ) : (
+                  <img
+                    src={imageSrc || '/favicon.png'}
+                    alt={item.headline}
+                    class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                )}
                 <div class="absolute inset-0 bg-gradient-to-t from-[#041d3d] via-transparent to-transparent"></div>
                 <span class="tag-brand absolute left-4 top-4 rounded-full px-3 py-1 text-[10px] uppercase tracking-[0.18em]">
                   {item.category}
@@ -234,7 +265,8 @@ const articleJsonLd = newsArticleJsonLd({
                 </p>
               </div>
             </a>
-          ))}
+            );
+          })}
         </div>
       </section>
     </main>

@@ -11,6 +11,7 @@ import {
   COVER_MAGAZINE_FRAME,
   COVER_THUMB_FRAME,
 } from '../lib/cover-frames'
+import { isPosterImage } from '../lib/news-video'
 
 interface CategorySectionProps {
   title: string
@@ -148,6 +149,46 @@ function imgSrc(image: NewsItem['image']): string {
   return typeof image === 'string' ? image : image.src
 }
 
+function CoverMedia({
+  item,
+  className,
+}: {
+  item: NewsItem
+  className: string
+}) {
+  const imageSrc = typeof item.image === 'string' ? item.image : item.image?.src
+  const showVideoFrame =
+    item.coverMediaType === 'video' && Boolean(item.videoUrl) && !isPosterImage(imageSrc ?? '')
+
+  if (showVideoFrame && item.videoUrl) {
+    return (
+      <video
+        src={item.videoUrl}
+        muted
+        playsInline
+        preload="metadata"
+        className={className}
+        aria-label={item.headline}
+      />
+    )
+  }
+
+  const src = imgSrc(item.image)
+  if (!src) {
+    return <div className={`${className} bg-slate-800`} aria-hidden="true" />
+  }
+
+  return (
+    <img
+      src={src}
+      alt={item.headline}
+      loading="lazy"
+      decoding="async"
+      className={className}
+    />
+  )
+}
+
 function VideoBadge() {
   return (
     <span className="absolute inset-0 flex items-center justify-center bg-[#041d3d]/40">
@@ -175,11 +216,8 @@ function CardHorizontal({ item }: { item: NewsItem }) {
     <ArticleLink item={item} className="block">
       <article className="group flex gap-3 items-start py-3 border-b border-gray-100 last:border-0 cursor-pointer">
         <div className={COVER_THUMB_FRAME}>
-          <img
-            src={imgSrc(item.image)}
-            alt={item.headline}
-            loading="lazy"
-            decoding="async"
+          <CoverMedia
+            item={item}
             className={`${COVER_IMG_CLASS} transition-transform duration-500 group-hover:scale-110`}
           />
           {item.coverMediaType === 'video' && <VideoBadge />}
@@ -216,11 +254,8 @@ function CardVertical({
     <ArticleLink item={item} className="block h-full">
       <article className="group flex flex-col cursor-pointer h-full rounded-xl overflow-hidden bg-[#f2f2f2] shadow-lg hover:shadow-xl transition-shadow duration-300">
         <div className={imageFrame}>
-          <img
-            src={imgSrc(item.image)}
-            alt={item.headline}
-            loading="lazy"
-            decoding="async"
+          <CoverMedia
+            item={item}
             className={`${COVER_IMG_CLASS} transition-transform duration-700 group-hover:scale-105`}
           />
           {item.coverMediaType === 'video' && <VideoBadge />}
@@ -273,11 +308,8 @@ function CardOverlay({
   return (
     <ArticleLink item={item} className="block h-full">
       <article className={`group cursor-pointer rounded-xl bg-slate-900 h-full ${className}`}>
-        <img
-          src={imgSrc(item.image)}
-          alt={item.headline}
-          loading="lazy"
-          decoding="async"
+        <CoverMedia
+          item={item}
           className={`${COVER_IMG_CLASS} transition-transform duration-700 group-hover:scale-105`}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
@@ -349,7 +381,8 @@ function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) 
         <div className="md:col-span-5 relative aspect-video md:aspect-auto md:h-full min-h-[200px] overflow-hidden">
           {cover ? (
             <ArticleLink item={cover} className="group absolute inset-0 block">
-              <img src={imgSrc(cover.image)} alt={cover.headline} loading="lazy" decoding="async" className={COVER_IMG_CLASS} />
+              <CoverMedia item={cover} className={COVER_IMG_CLASS} />
+              {cover.coverMediaType === 'video' && <VideoBadge />}
               <div
                 className="absolute inset-0"
                 style={{
@@ -400,13 +433,11 @@ function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) 
           <div className="relative shrink-0 overflow-hidden aspect-video md:flex-[1.15] md:min-h-0 md:aspect-auto">
             {lead ? (
               <ArticleLink item={lead} className="group block w-full h-full cursor-pointer">
-                <img
-                  src={imgSrc(lead.image)}
-                  alt={lead.headline}
-                  loading="lazy"
-                  decoding="async"
+                <CoverMedia
+                  item={lead}
                   className={`${COVER_IMG_CLASS} transition-transform duration-700 group-hover:scale-105`}
                 />
+                {lead.coverMediaType === 'video' && <VideoBadge />}
                 <div
                   className="absolute inset-0"
                   style={{
@@ -451,13 +482,11 @@ function LayoutMagazine({ news, accent }: { news: NewsItem[]; accent: string }) 
                 {item ? (
                   <ArticleLink item={item} className="group flex gap-3 px-4 py-3 cursor-pointer transition-colors duration-150 hover:bg-white/10 h-full">
                     <div className={`${COVER_THUMB_FRAME} rounded-md self-center`}>
-                      <img
-                        src={imgSrc(item.image)}
-                        alt={item.headline}
-                        loading="lazy"
-                        decoding="async"
+                      <CoverMedia
+                        item={item}
                         className={`${COVER_IMG_CLASS} transition-transform duration-500 group-hover:scale-110`}
                       />
+                      {item.coverMediaType === 'video' && <VideoBadge />}
                     </div>
                     <div className="flex flex-col gap-0.5 min-w-0 justify-center">
                       <span  className="text-[8px] uppercase tracking-[0.25em] font-bold px-2 py-1 rounded-sm w-fit"
