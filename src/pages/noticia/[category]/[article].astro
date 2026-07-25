@@ -112,28 +112,45 @@ const articleJsonLd = newsArticleJsonLd({
                 </div>
               </>
             ) : (
-              <div class={COVER_ARTICLE_FRAME}>
-                <img
-                  src={articleImage}
-                  alt={article.headline}
-                  class={COVER_IMG_CLASS}
-                />
-                <div class="absolute inset-0 bg-gradient-to-t from-[#041d3d] via-[#041d3d]/45 to-transparent pointer-events-none"></div>
-                <div class="absolute inset-x-0 bottom-0 p-6 md:p-10 pointer-events-none">
-                <div class="flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.2em]">
-                  <span class="tag-brand rounded-full px-4 py-1.5 font-semibold">{article.category}</span>
-                  <span class="text-white/65">{article.timeAgo}</span>
+              <>
+                <div class={COVER_ARTICLE_FRAME}>
+                  <img
+                    src={articleImage}
+                    alt={article.headline}
+                    class={COVER_IMG_CLASS}
+                  />
+                  <div class="absolute inset-0 bg-gradient-to-t from-[#041d3d] via-[#041d3d]/45 to-transparent pointer-events-none"></div>
+                  <div class="absolute inset-x-0 bottom-0 hidden p-6 pointer-events-none md:block md:p-10">
+                    <div class="flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.2em]">
+                      <span class="tag-brand rounded-full px-4 py-1.5 font-semibold">{article.category}</span>
+                      <span class="text-white/65">{article.timeAgo}</span>
+                    </div>
+
+                    <h1 class="mt-5 max-w-4xl font-newsreader text-4xl leading-tight text-white md:text-6xl">
+                      {article.headline}
+                    </h1>
+
+                    <p class="mt-4 max-w-3xl text-base leading-7 text-white/82 md:text-lg">
+                      {articleSummary}
+                    </p>
+                  </div>
                 </div>
 
-                <h1 class="mt-5 max-w-4xl font-newsreader text-4xl leading-tight text-white md:text-6xl">
-                  {article.headline}
-                </h1>
+                <div class="bg-[#041d3d] px-6 py-6 md:hidden">
+                  <div class="flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.2em]">
+                    <span class="tag-brand rounded-full px-4 py-1.5 font-semibold">{article.category}</span>
+                    <span class="text-white/65">{article.timeAgo}</span>
+                  </div>
 
-                <p class="mt-4 max-w-3xl text-base leading-7 text-white/82 md:text-lg">
-                  {articleSummary}
-                </p>
+                  <h1 class="mt-4 font-newsreader text-3xl leading-tight text-white">
+                    {article.headline}
+                  </h1>
+
+                  <p class="mt-3 text-base leading-7 text-white/82">
+                    {articleSummary}
+                  </p>
                 </div>
-              </div>
+              </>
             )}
 
             <div class="grid gap-8 px-6 py-8 md:px-10 md:py-10 lg:grid-cols-[minmax(0,1fr)_250px]">
