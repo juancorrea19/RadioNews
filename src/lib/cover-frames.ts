@@ -1,8 +1,16 @@
 /** Clases compartidas para marcos de portada (16:9 con tope de altura). */
 
-/** object-contain + fondo de marca para que la imagen se vea completa, sin recortes. */
+/**
+ * Capa de fondo desenfocada: una copia agrandada y difuminada de la misma imagen
+ * que llena todo el marco, para que nunca se vea un espacio vacio detras de la
+ * imagen nitida (que usa object-contain y puede no cubrir el marco completo).
+ */
+export const COVER_IMG_BLUR_CLASS =
+  "absolute inset-0 h-full w-full scale-110 object-cover object-center blur-2xl opacity-60 saturate-150";
+
+/** Imagen nitida, completa y sin recortes (object-contain) sobre la capa difuminada. */
 export const COVER_IMG_CLASS =
-  "absolute inset-0 h-full w-full object-contain object-center bg-[#041d3d]";
+  "absolute inset-0 h-full w-full object-contain object-center";
 
 export const COVER_THUMB_FRAME =
   "relative shrink-0 w-20 aspect-video overflow-hidden rounded-lg bg-[#041d3d]";

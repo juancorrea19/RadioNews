@@ -1,5 +1,6 @@
 ---
 import type { FlashCarouselSlide } from "../lib/site-content";
+import { COVER_IMG_BLUR_CLASS } from "../lib/cover-frames";
 
 interface Props {
   slides: FlashCarouselSlide[];
@@ -45,6 +46,14 @@ const { slides } = Astro.props;
                     data-slide-index={i}
                   >
                     <div class="group relative aspect-square w-full overflow-hidden rounded-[2rem] border-[4px] border-white/20 bg-[#041d3d] shadow-2xl sm:aspect-video md:aspect-[21/9] md:border-[6px]">
+                      <img
+                        src={slide.imagenUrl}
+                        alt=""
+                        aria-hidden="true"
+                        class={COVER_IMG_BLUR_CLASS}
+                        loading={i === 0 ? "eager" : "lazy"}
+                        decoding="async"
+                      />
                       <img
                         src={slide.imagenUrl}
                         alt={slide.imagenAlt}

@@ -1,6 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { COVER_ARTICLE_FRAME, COVER_IMG_CLASS } from '../../lib/cover-frames';
+import { COVER_ARTICLE_FRAME, COVER_IMG_BLUR_CLASS, COVER_IMG_CLASS } from '../../lib/cover-frames';
 import Header from '../../components/header.astro';
 import AdSlot from '../../components/AdSlot.astro';
 import Footer from '../../components/footer.astro';
@@ -88,6 +88,7 @@ const flashJsonLd = newsArticleJsonLd({
         <div class="mt-6 grid gap-8 xl:grid-cols-[minmax(0,1fr)_320px]">
           <article class="overflow-hidden rounded-[28px] bg-[#f2f2f2] text-[#1a2332] shadow-[0_30px_60px_rgba(0,0,0,0.22)]">
             <div class={COVER_ARTICLE_FRAME}>
+              <img src={coverImage} alt="" aria-hidden="true" class={COVER_IMG_BLUR_CLASS} />
               <img
                 src={coverImage}
                 alt={slide.title}
@@ -166,7 +167,10 @@ const flashJsonLd = newsArticleJsonLd({
                     href={item.href}
                     class="group flex gap-3 rounded-[22px] border border-white/8 bg-[#06172f] p-3 transition-colors hover:bg-[#0a2143]"
                   >
-                    <img src={item.imagenUrl} alt={item.imagenAlt} class="h-20 w-24 shrink-0 rounded-2xl bg-[#041d3d] object-contain" />
+                    <div class="relative h-20 w-24 shrink-0 overflow-hidden rounded-2xl bg-[#041d3d]">
+                      <img src={item.imagenUrl} alt="" aria-hidden="true" class={COVER_IMG_BLUR_CLASS} />
+                      <img src={item.imagenUrl} alt={item.imagenAlt} class={COVER_IMG_CLASS} />
+                    </div>
                     <div class="min-w-0">
                       <span class="text-[10px] uppercase tracking-[0.16em] text-white/90">{item.categoria}</span>
                       <h3 class="mt-2 font-newsreader text-lg leading-6 text-white transition-colors group-hover:text-[#ffd2d2]">
@@ -204,10 +208,11 @@ const flashJsonLd = newsArticleJsonLd({
                 class="group overflow-hidden rounded-[24px] border border-white/10 bg-[#06172f] transition-transform duration-300 hover:-translate-y-1"
               >
                 <div class="relative h-52 overflow-hidden bg-[#041d3d]">
+                  <img src={item.imagenUrl} alt="" aria-hidden="true" class={COVER_IMG_BLUR_CLASS} />
                   <img
                     src={item.imagenUrl}
                     alt={item.imagenAlt}
-                    class="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
+                    class={`${COVER_IMG_CLASS} transition-transform duration-500 group-hover:scale-105`}
                   />
                   <div class="absolute inset-0 bg-gradient-to-t from-[#041d3d] via-transparent to-transparent"></div>
                   <span class="tag-brand absolute left-4 top-4 rounded-full px-3 py-1 text-[10px] uppercase tracking-[0.18em]">

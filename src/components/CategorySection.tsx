@@ -7,6 +7,7 @@ import {
   COVER_SPOTLIGHT_GRID_FRAME,
   COVER_CARD_FRAME,
   COVER_HERO_FRAME,
+  COVER_IMG_BLUR_CLASS,
   COVER_IMG_CLASS,
   COVER_MAGAZINE_FRAME,
   COVER_THUMB_FRAME,
@@ -179,13 +180,16 @@ function CoverMedia({
   }
 
   return (
-    <img
-      src={src}
-      alt={item.headline}
-      loading="lazy"
-      decoding="async"
-      className={className}
-    />
+    <>
+      <img src={src} alt="" aria-hidden="true" loading="lazy" decoding="async" className={COVER_IMG_BLUR_CLASS} />
+      <img
+        src={src}
+        alt={item.headline}
+        loading="lazy"
+        decoding="async"
+        className={className}
+      />
+    </>
   )
 }
 
