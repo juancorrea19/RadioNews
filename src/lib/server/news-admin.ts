@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveVideoContentType } from "../news-video";
 import { NEWS_CATEGORY_META, type NewsCategorySlug } from "../news-categories";
+import { isAllowedNewsVideo } from "../upload-limits";
 import { normalizeCoverImage } from "./cover-image";
 import { createSupabaseAdminClient, isSupabaseConfigured } from "./supabase";
 
@@ -25,28 +26,17 @@ export interface NewsArticleRecord {
   updated_at: string;
 }
 
-export const NEWS_IMAGE_MAX_BYTES = 6 * 1024 * 1024;
-export const NEWS_VIDEO_MAX_BYTES = 100 * 1024 * 1024;
-
-const NEWS_VIDEO_MIME_TYPES = new Set([
-  "video/mp4",
-  "video/webm",
-  "video/quicktime",
-]);
-
-const NEWS_VIDEO_EXTENSIONS = new Set(["mp4", "webm", "mov"]);
+export {
+  IMAGE_MAX_BYTES as NEWS_IMAGE_MAX_BYTES,
+  NEWS_VIDEO_MAX_BYTES,
+} from "../upload-limits";
 
 export function isCoverMediaType(value: string): value is CoverMediaType {
   return value === "image" || value === "video";
 }
 
 export function isNewsVideoFile(file: File): boolean {
-  if (NEWS_VIDEO_MIME_TYPES.has(file.type)) {
-    return true;
-  }
-
-  const extension = file.name.includes(".") ? file.name.split(".").pop()?.toLowerCase() : "";
-  return Boolean(extension && NEWS_VIDEO_EXTENSIONS.has(extension));
+  return isAllowedNewsVideo(file.type, file.name);
 }
 
 const NEWS_TABLE = "news_articles";

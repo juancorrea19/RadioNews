@@ -3,13 +3,8 @@ import { getAuthenticatedAdmin } from "../../../../lib/server/admin-auth";
 import {
   isCoverMediaType,
   isNewsCategory,
-  isNewsVideoFile,
-  NEWS_IMAGE_MAX_BYTES,
-  NEWS_VIDEO_MAX_BYTES,
   removeNewsStoragePath,
   saveNewsArticle,
-  uploadNewsImage,
-  uploadNewsVideo,
 } from "../../../../lib/server/news-admin";
 import { isSupabaseConfigured } from "../../../../lib/server/supabase";
 
@@ -38,12 +33,12 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     const publishedAt = String(formData.get("publishedAt") || "").trim();
     const status = String(formData.get("status") || "draft").trim();
     const coverMediaType = String(formData.get("coverMediaType") || "image").trim();
-    const existingCoverImageUrl = String(formData.get("existingCoverImageUrl") || "").trim();
-    const existingCoverImagePath = String(formData.get("existingCoverImagePath") || "").trim();
-    const existingCoverVideoUrl = String(formData.get("existingCoverVideoUrl") || "").trim();
-    const existingCoverVideoPath = String(formData.get("existingCoverVideoPath") || "").trim();
-    const image = formData.get("coverImage");
-    const video = formData.get("coverVideo");
+    const coverImageUrl = String(formData.get("existingCoverImageUrl") || "").trim() || null;
+    const coverImagePath = String(formData.get("existingCoverImagePath") || "").trim() || null;
+    const coverVideoUrl = String(formData.get("existingCoverVideoUrl") || "").trim() || null;
+    const coverVideoPath = String(formData.get("existingCoverVideoPath") || "").trim() || null;
+    const obsoleteCoverImagePath = String(formData.get("obsoleteCoverImagePath") || "").trim();
+    const obsoleteCoverVideoPath = String(formData.get("obsoleteCoverVideoPath") || "").trim();
     const target = id ? `/admin/noticias/${id}` : "/admin/noticias/nueva";
 
     if (!title || !body || !publishedAt) {
@@ -67,50 +62,37 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       return redirectWithError(target, "El tipo de portada no es valido.");
     }
 
-    let coverImageUrl = existingCoverImageUrl || null;
-    let coverImagePath = existingCoverImagePath || null;
-    let coverVideoUrl = existingCoverVideoUrl || null;
-    let coverVideoPath = existingCoverVideoPath || null;
-
-    if (image instanceof File && image.size > 0) {
-      if (image.size > NEWS_IMAGE_MAX_BYTES) {
-        return redirectWithError(target, "La imagen supera el limite de 6 MB.");
-      }
-
-      const uploaded = await uploadNewsImage(image, coverImagePath);
-      coverImageUrl = uploaded.publicUrl;
-      coverImagePath = uploaded.path;
-    }
-
-    if (video instanceof File && video.size > 0) {
-      if (!isNewsVideoFile(video)) {
-        return redirectWithError(target, "El video debe ser MP4, WebM o MOV.");
-      }
-
-      if (video.size > NEWS_VIDEO_MAX_BYTES) {
-        return redirectWithError(target, "El video supera el limite de 100 MB.");
-      }
-
-      const uploaded = await uploadNewsVideo(video, coverVideoPath);
-      coverVideoUrl = uploaded.publicUrl;
-      coverVideoPath = uploaded.path;
-    }
+    let finalImageUrl = coverImageUrl;
+    let finalImagePath = coverImagePath;
+    let finalVideoUrl = coverVideoUrl;
+    let finalVideoPath = coverVideoPath;
 
     if (coverMediaType === "video") {
-      if (!coverVideoUrl) {
+      if (!finalVideoUrl || !finalVideoPath) {
         return redirectWithError(target, "Debes subir un video principal.");
       }
     } else {
-      if (!coverImageUrl) {
+      if (!finalImageUrl || !finalImagePath) {
         return redirectWithError(target, "Debes subir una imagen principal.");
       }
 
-      if (existingCoverVideoPath) {
-        await removeNewsStoragePath(existingCoverVideoPath);
+      if (finalVideoPath) {
+        await removeNewsStoragePath(finalVideoPath);
+      }
+      if (obsoleteCoverVideoPath && obsoleteCoverVideoPath !== finalVideoPath) {
+        await removeNewsStoragePath(obsoleteCoverVideoPath);
       }
 
-      coverVideoUrl = null;
-      coverVideoPath = null;
+      finalVideoUrl = null;
+      finalVideoPath = null;
+    }
+
+    if (obsoleteCoverImagePath && obsoleteCoverImagePath !== finalImagePath) {
+      await removeNewsStoragePath(obsoleteCoverImagePath);
+    }
+
+    if (coverMediaType === "video" && obsoleteCoverVideoPath && obsoleteCoverVideoPath !== finalVideoPath) {
+      await removeNewsStoragePath(obsoleteCoverVideoPath);
     }
 
     const saved = await saveNewsArticle({
@@ -123,10 +105,10 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       publishedAt: new Date(publishedAtMs).toISOString(),
       status,
       coverMediaType,
-      coverImageUrl,
-      coverImagePath,
-      coverVideoUrl,
-      coverVideoPath,
+      coverImageUrl: finalImageUrl,
+      coverImagePath: finalImagePath,
+      coverVideoUrl: finalVideoUrl,
+      coverVideoPath: finalVideoPath,
     });
 
     return redirect(`/admin/noticias/${saved.id}?saved=1`);

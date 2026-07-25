@@ -52,6 +52,12 @@ export async function saveDenunciaSubmission(
   payload: DenunciaSubmission,
   options?: {
     evidence?: { buffer: ArrayBuffer; filename: string; mimeType: string } | null;
+    preUploadedEvidence?: {
+      path: string;
+      filename: string;
+      mimeType: string;
+      size: number;
+    } | null;
   },
 ): Promise<SaveDenunciaResult> {
   if (isSupabaseConfigured()) {
@@ -63,6 +69,7 @@ export async function saveDenunciaSubmission(
       ubicacion: payload.ubicacion,
       autorizaContacto: payload.autorizaContacto,
       evidence: options?.evidence && options.evidence.buffer.byteLength > 0 ? options.evidence : null,
+      preUploadedEvidence: options?.preUploadedEvidence ?? null,
     });
 
     return { stored: true, mode: "supabase", id };

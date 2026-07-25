@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 import { getAuthenticatedAdmin } from "../../../../lib/server/admin-auth";
-import { isAdSlotKey, upsertAdSlot, uploadSiteMediaFile } from "../../../../lib/server/site-cms";
+import { isAdSlotKey, removeSiteMediaPath, upsertAdSlot } from "../../../../lib/server/site-cms";
 import { isSupabaseConfigured } from "../../../../lib/server/supabase";
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
@@ -26,9 +26,9 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     const href = String(formData.get("href") || "").trim();
     const alt = String(formData.get("alt") || "").trim();
     const cta = String(formData.get("cta") || "").trim();
-    const existingImageUrl = String(formData.get("existingImageUrl") || "").trim();
-    const existingImagePath = String(formData.get("existingImagePath") || "").trim();
-    const image = formData.get("image");
+    const imageUrl = String(formData.get("existingImageUrl") || "").trim() || null;
+    const imagePath = String(formData.get("existingImagePath") || "").trim() || null;
+    const obsoleteImagePath = String(formData.get("obsoleteImagePath") || "").trim();
 
     if (!isAdSlotKey(slotKey)) {
       return redirect("/admin/publicidad?error=slot");
@@ -38,17 +38,8 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       return redirectWithError(slotKey, "Completa al menos etiqueta y titulo.");
     }
 
-    let imageUrl = existingImageUrl || null;
-    let imagePath = existingImagePath || null;
-
-    if (image instanceof File && image.size > 0) {
-      if (image.size > 6 * 1024 * 1024) {
-        return redirectWithError(slotKey, "La imagen supera el limite de 6 MB.");
-      }
-
-      const uploaded = await uploadSiteMediaFile(image, "ads", imagePath);
-      imageUrl = uploaded.publicUrl;
-      imagePath = uploaded.path;
+    if (obsoleteImagePath && obsoleteImagePath !== imagePath) {
+      await removeSiteMediaPath(obsoleteImagePath);
     }
 
     await upsertAdSlot({

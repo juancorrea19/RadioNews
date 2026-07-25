@@ -23,7 +23,11 @@ const error = errorRaw ? decodeURIComponent(errorRaw.replace(/\+/g, " ")) : "";
       <div class="mb-6 rounded-2xl border border-red-400/25 bg-red-400/10 p-4 text-sm text-red-100">{error}</div>
     ) : null}
 
-    <form method="POST" action="/api/admin/flash/save" enctype="multipart/form-data" class="grid gap-6 lg:grid-cols-2">
+    <form method="POST" action="/api/admin/flash/save" class="grid gap-6 lg:grid-cols-2" id="flash-save-form">
+      <input type="hidden" name="existingImageUrl" id="flashExistingImageUrl" value="" />
+      <input type="hidden" name="existingImagePath" id="flashExistingImagePath" value="" />
+      <input type="hidden" name="obsoleteImagePath" id="flashObsoleteImagePath" value="" />
+
       <label class="block">
         <span class="mb-2 block text-sm text-white/75">Categoria (etiqueta)</span>
         <input
@@ -80,14 +84,15 @@ const error = errorRaw ? decodeURIComponent(errorRaw.replace(/\+/g, " ")) : "";
       </label>
 
       <label class="block lg:col-span-2">
-        <span class="mb-2 block text-sm text-white/75">Imagen (horizontal recomendada)</span>
+        <span class="mb-2 block text-sm text-white/75">Imagen (horizontal recomendada, max. 6 MB)</span>
         <input
           type="file"
-          name="image"
+          id="flashImageInput"
           accept="image/*"
-          required
           class="block w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-sm text-white/80 file:mr-4 file:rounded-full file:border-0 file:bg-[#a62b2b] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
         />
+        <p class="mt-2 text-xs text-white/50">Se sube directo al almacenamiento.</p>
+        <p id="flash-upload-status" class="mt-2 hidden text-xs text-white/70"></p>
       </label>
 
       <div class="flex justify-end lg:col-span-2">
@@ -98,3 +103,29 @@ const error = errorRaw ? decodeURIComponent(errorRaw.replace(/\+/g, " ")) : "";
     </form>
   </section>
 </AdminLayout>
+
+<script>
+  import { bindDirectFileInput } from "../../../scripts/direct-upload";
+
+  const fileInput = document.getElementById("flashImageInput");
+  const urlInput = document.getElementById("flashExistingImageUrl");
+  const pathInput = document.getElementById("flashExistingImagePath");
+  const obsoleteInput = document.getElementById("flashObsoleteImagePath");
+  const statusEl = document.getElementById("flash-upload-status");
+
+  if (
+    fileInput instanceof HTMLInputElement &&
+    urlInput instanceof HTMLInputElement &&
+    pathInput instanceof HTMLInputElement
+  ) {
+    bindDirectFileInput({
+      purpose: "flash",
+      fileInput,
+      urlInput,
+      pathInput,
+      obsoleteInput: obsoleteInput instanceof HTMLInputElement ? obsoleteInput : null,
+      statusEl: statusEl instanceof HTMLElement ? statusEl : null,
+      requiredWhenEmpty: true,
+    });
+  }
+</script>

@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 import { getAuthenticatedAdmin } from "../../../../lib/server/admin-auth";
-import { saveFlashSlide, uploadSiteMediaFile } from "../../../../lib/server/site-cms";
+import { removeSiteMediaPath, saveFlashSlide } from "../../../../lib/server/site-cms";
 import { isSupabaseConfigured } from "../../../../lib/server/supabase";
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
@@ -26,9 +26,9 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     const dateLine = String(formData.get("dateLine") || "").trim();
     const sortOrderRaw = String(formData.get("sortOrder") || "0").trim();
     const status = String(formData.get("status") || "draft").trim();
-    const existingImageUrl = String(formData.get("existingImageUrl") || "").trim();
-    const existingImagePath = String(formData.get("existingImagePath") || "").trim();
-    const image = formData.get("image");
+    const imageUrl = String(formData.get("existingImageUrl") || "").trim() || null;
+    const imagePath = String(formData.get("existingImagePath") || "").trim() || null;
+    const obsoleteImagePath = String(formData.get("obsoleteImagePath") || "").trim();
     const target = id ? `/admin/flash/${id}` : "/admin/flash/nueva";
 
     if (!category || !title || !body || !dateLine) {
@@ -42,21 +42,12 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     const sortOrder = Number.parseInt(sortOrderRaw, 10);
     const sortOrderSafe = Number.isFinite(sortOrder) ? sortOrder : 0;
 
-    let imageUrl = existingImageUrl || null;
-    let imagePath = existingImagePath || null;
-
-    if (image instanceof File && image.size > 0) {
-      if (image.size > 6 * 1024 * 1024) {
-        return redirectWithError(target, "La imagen supera el limite de 6 MB.");
-      }
-
-      const uploaded = await uploadSiteMediaFile(image, "flash", imagePath);
-      imageUrl = uploaded.publicUrl;
-      imagePath = uploaded.path;
+    if (!imageUrl || !imagePath) {
+      return redirectWithError(target, "Debes subir una imagen para la diapositiva.");
     }
 
-    if (!imageUrl) {
-      return redirectWithError(target, "Debes subir una imagen para la diapositiva.");
+    if (obsoleteImagePath && obsoleteImagePath !== imagePath) {
+      await removeSiteMediaPath(obsoleteImagePath);
     }
 
     const saved = await saveFlashSlide({

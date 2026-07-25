@@ -4,8 +4,8 @@ import { saveDenunciaSubmission, type SaveDenunciaResult } from "../../lib/serve
 import {
   sendDenunciaAcknowledgementEmail,
   sendNotificationEmail,
-  type EmailAttachment,
 } from "../../lib/server/notifications";
+import { DENUNCIA_EVIDENCE_MAX_BYTES } from "../../lib/upload-limits";
 
 function response(body: Record<string, unknown>, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -25,19 +25,6 @@ function escapeHtml(value: string) {
     .replaceAll("'", "&#39;");
 }
 
-function arrayBufferToBase64(arrayBuffer: ArrayBuffer) {
-  const bytes = new Uint8Array(arrayBuffer);
-  let binary = "";
-  const chunkSize = 0x8000;
-
-  for (let index = 0; index < bytes.length; index += chunkSize) {
-    const chunk = bytes.subarray(index, index + chunkSize);
-    binary += String.fromCharCode(...chunk);
-  }
-
-  return btoa(binary);
-}
-
 export const POST: APIRoute = async ({ request }) => {
   try {
     const formData = await request.formData();
@@ -48,14 +35,16 @@ export const POST: APIRoute = async ({ request }) => {
     const descripcion = String(formData.get("descripcion") || "").trim();
     const ubicacion = String(formData.get("ubicacion") || "").trim();
     const autorizaContacto = formData.get("autorizaContacto") === "on";
-    const evidencia = formData.get("evidencia");
+    const evidencePath = String(formData.get("evidencePath") || "").trim();
+    const evidenceFilename = String(formData.get("evidenceFilename") || "").trim();
+    const evidenceMime = String(formData.get("evidenceMime") || "").trim();
+    const evidenceSizeRaw = String(formData.get("evidenceSize") || "").trim();
+    const evidenceSize = Number.parseInt(evidenceSizeRaw, 10);
 
     if (!nombre || !numero || !correo || !descripcion || !ubicacion || !autorizaContacto) {
       return response({ message: "Completa todos los campos obligatorios de la denuncia." }, 400);
     }
 
-    let evidenceBytes: ArrayBuffer | null = null;
-    let attachment: EmailAttachment | undefined;
     let evidenciaMeta:
       | {
           filename: string;
@@ -64,24 +53,31 @@ export const POST: APIRoute = async ({ request }) => {
         }
       | undefined;
 
-    if (evidencia instanceof File && evidencia.size > 0) {
-      if (evidencia.size > 8 * 1024 * 1024) {
+    let preUploadedEvidence:
+      | {
+          path: string;
+          filename: string;
+          mimeType: string;
+          size: number;
+        }
+      | null = null;
+
+    if (evidencePath) {
+      if (!Number.isFinite(evidenceSize) || evidenceSize <= 0 || evidenceSize > DENUNCIA_EVIDENCE_MAX_BYTES) {
         return response({ message: "La evidencia supera el limite recomendado de 8 MB." }, 400);
       }
 
-      evidenceBytes = await evidencia.arrayBuffer();
-      const mimeType = evidencia.type || "application/octet-stream";
-
       evidenciaMeta = {
-        filename: evidencia.name,
-        mimeType,
-        size: evidencia.size,
+        filename: evidenceFilename || "evidencia",
+        mimeType: evidenceMime || "application/octet-stream",
+        size: evidenceSize,
       };
 
-      attachment = {
-        filename: evidencia.name,
-        type: mimeType,
-        content: arrayBufferToBase64(evidenceBytes),
+      preUploadedEvidence = {
+        path: evidencePath,
+        filename: evidenciaMeta.filename,
+        mimeType: evidenciaMeta.mimeType,
+        size: evidenciaMeta.size,
       };
     }
 
@@ -99,14 +95,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     try {
       storage = await saveDenunciaSubmission(submission, {
-        evidence:
-          evidenceBytes && evidenciaMeta && evidenceBytes.byteLength > 0
-            ? {
-                buffer: evidenceBytes,
-                filename: evidenciaMeta.filename,
-                mimeType: evidenciaMeta.mimeType,
-              }
-            : null,
+        preUploadedEvidence,
       });
     } catch (error) {
       console.error("Error guardando denuncia en Supabase o webhook", error);
@@ -126,7 +115,6 @@ export const POST: APIRoute = async ({ request }) => {
     const staffEmail = sendNotificationEmail({
       subject: `Nueva denuncia de ${nombre}`,
       replyTo: correo,
-      attachments: attachment ? [attachment] : undefined,
       html: `
           <h2>Nueva denuncia recibida</h2>
           <p><strong>ID (Supabase):</strong> ${storage.stored && storage.mode === "supabase" ? escapeHtml(storage.id) : "N/A"}</p>
@@ -138,7 +126,7 @@ export const POST: APIRoute = async ({ request }) => {
           <p><strong>Descripcion:</strong><br />${escapeHtml(descripcion).replaceAll("\n", "<br />")}</p>
           <p><strong>Evidencia:</strong> ${
             evidenciaMeta
-              ? `${escapeHtml(evidenciaMeta.filename)} (${evidenciaMeta.size} bytes) — tambien archivada en Supabase si aplica.`
+              ? `${escapeHtml(evidenciaMeta.filename)} (${evidenciaMeta.size} bytes) — archivada en Storage (revisa el panel admin para descargar).`
               : "No se adjunto archivo"
           }</p>
         `,
@@ -159,8 +147,7 @@ export const POST: APIRoute = async ({ request }) => {
     const staffDelivered = staffResult.status === "fulfilled" && staffResult.value.delivered;
     const ackDelivered = ackResult.status === "fulfilled" && ackResult.value.delivered;
 
-    let message =
-      "Recibimos tu denuncia. Quedo registrada para revision del equipo.";
+    let message = "Recibimos tu denuncia. Quedo registrada para revision del equipo.";
     if (isSupabaseConfigured()) {
       message += " La evidencia y los datos quedaron archivados de forma segura.";
     }

@@ -92,10 +92,11 @@ const cleared = Astro.url.searchParams.get("cleared");
           </form>
         )}
 
-        <form method="POST" action="/api/admin/ads/save" enctype="multipart/form-data" class="mt-6 grid gap-5 lg:grid-cols-2">
+        <form method="POST" action="/api/admin/ads/save" class="mt-6 grid gap-5 lg:grid-cols-2" data-ads-form>
           <input type="hidden" name="slotKey" value={s.key} />
-          <input type="hidden" name="existingImageUrl" value={s.imageUrl} />
-          <input type="hidden" name="existingImagePath" value={s.imagePath} />
+          <input type="hidden" name="existingImageUrl" data-ads-url value={s.imageUrl} />
+          <input type="hidden" name="existingImagePath" data-ads-path value={s.imagePath} />
+          <input type="hidden" name="obsoleteImagePath" data-ads-obsolete value="" />
 
           <label class="block">
             <span class="mb-2 block text-sm text-white/75">Etiqueta</span>
@@ -128,13 +129,15 @@ const cleared = Astro.url.searchParams.get("cleared");
           </label>
 
           <label class="block lg:col-span-2">
-            <span class="mb-2 block text-sm text-white/75">Imagen creativa (opcional)</span>
+            <span class="mb-2 block text-sm text-white/75">Imagen creativa (opcional, max. 6 MB)</span>
             <input
               type="file"
-              name="image"
               accept="image/*"
+              data-ads-file
               class="block w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-sm text-white/80 file:mr-4 file:rounded-full file:border-0 file:bg-[#a62b2b] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
             />
+            <p class="mt-2 text-xs text-white/50">Se sube directo al almacenamiento.</p>
+            <p data-ads-status class="mt-2 hidden text-xs text-white/70"></p>
             {s.imageUrl ? <img src={s.imageUrl} alt="" class="mt-4 h-32 w-full max-w-lg rounded-2xl object-cover" /> : null}
           </label>
 
@@ -148,3 +151,35 @@ const cleared = Astro.url.searchParams.get("cleared");
     ))}
   </section>
 </AdminLayout>
+
+<script>
+  import { bindDirectFileInput } from "../../scripts/direct-upload";
+
+  document.querySelectorAll("[data-ads-form]").forEach((formEl) => {
+    if (!(formEl instanceof HTMLFormElement)) return;
+
+    const fileInput = formEl.querySelector("[data-ads-file]");
+    const urlInput = formEl.querySelector("[data-ads-url]");
+    const pathInput = formEl.querySelector("[data-ads-path]");
+    const obsoleteInput = formEl.querySelector("[data-ads-obsolete]");
+    const statusEl = formEl.querySelector("[data-ads-status]");
+
+    if (
+      !(fileInput instanceof HTMLInputElement) ||
+      !(urlInput instanceof HTMLInputElement) ||
+      !(pathInput instanceof HTMLInputElement)
+    ) {
+      return;
+    }
+
+    bindDirectFileInput({
+      purpose: "ads",
+      fileInput,
+      urlInput,
+      pathInput,
+      obsoleteInput: obsoleteInput instanceof HTMLInputElement ? obsoleteInput : null,
+      statusEl: statusEl instanceof HTMLElement ? statusEl : null,
+      requiredWhenEmpty: false,
+    });
+  });
+</script>

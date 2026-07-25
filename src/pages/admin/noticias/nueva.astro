@@ -22,7 +22,7 @@ const error = Astro.url.searchParams.get("error");
       </div>
     )}
 
-    <form method="POST" action="/api/admin/news/save" enctype="multipart/form-data" class="grid gap-6 lg:grid-cols-2">
+    <form method="POST" action="/api/admin/news/save" class="grid gap-6 lg:grid-cols-2">
       <label class="block">
         <span class="mb-2 block text-sm text-white/75">Titulo</span>
         <input type="text" name="title" required class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]" />

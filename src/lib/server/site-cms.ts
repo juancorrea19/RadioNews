@@ -50,6 +50,12 @@ function getAdminClient() {
   return createSupabaseAdminClient();
 }
 
+export async function removeSiteMediaPath(path?: string | null) {
+  if (!path) return;
+  const supabase = getAdminClient();
+  await supabase.storage.from(SITE_MEDIA_BUCKET).remove([path]);
+}
+
 export async function uploadSiteMediaFile(
   file: File,
   subfolder: "flash" | "ads",

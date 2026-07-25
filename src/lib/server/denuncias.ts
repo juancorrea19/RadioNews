@@ -1,5 +1,5 @@
 import { slugify } from "./news-admin";
-import { createSupabaseAdminClient } from "./supabase";
+import { createSupabaseAdminClient, isSupabaseConfigured } from "./supabase";
 
 const TABLE = "denuncias";
 export const DENUNCIAS_EVIDENCE_BUCKET = "denuncias-evidence";
@@ -45,6 +45,13 @@ export async function insertDenunciaInSupabase(input: {
   ubicacion: string;
   autorizaContacto: boolean;
   evidence?: { buffer: ArrayBuffer; filename: string; mimeType: string } | null;
+  /** Evidencia ya subida directo a Storage (signed upload). */
+  preUploadedEvidence?: {
+    path: string;
+    filename: string;
+    mimeType: string;
+    size: number;
+  } | null;
 }): Promise<{ id: string }> {
   const supabase = getAdmin();
   const id = crypto.randomUUID();
@@ -54,26 +61,34 @@ export async function insertDenunciaInSupabase(input: {
   let evidence_mime: string | null = null;
   let evidence_size: number | null = null;
 
-  const ev = input.evidence;
-  if (ev && ev.buffer.byteLength > 0) {
-    const base = slugify(ev.filename.replace(/\.[^/.]+$/, "")) || "evidencia";
-    const extension = ev.filename.includes(".") ? ev.filename.split(".").pop()?.toLowerCase() : "bin";
-    const safeExt = extension && /^[a-z0-9]{1,8}$/.test(extension) ? extension : "bin";
-    evidence_path = `${id}/${base}.${safeExt}`;
-    evidence_filename = ev.filename;
-    evidence_mime = ev.mimeType || "application/octet-stream";
-    const body = new Uint8Array(ev.buffer);
-    evidence_size = body.byteLength;
+  const pre = input.preUploadedEvidence;
+  if (pre?.path) {
+    evidence_path = pre.path;
+    evidence_filename = pre.filename;
+    evidence_mime = pre.mimeType || "application/octet-stream";
+    evidence_size = pre.size;
+  } else {
+    const ev = input.evidence;
+    if (ev && ev.buffer.byteLength > 0) {
+      const base = slugify(ev.filename.replace(/\.[^/.]+$/, "")) || "evidencia";
+      const extension = ev.filename.includes(".") ? ev.filename.split(".").pop()?.toLowerCase() : "bin";
+      const safeExt = extension && /^[a-z0-9]{1,8}$/.test(extension) ? extension : "bin";
+      evidence_path = `${id}/${base}.${safeExt}`;
+      evidence_filename = ev.filename;
+      evidence_mime = ev.mimeType || "application/octet-stream";
+      const body = new Uint8Array(ev.buffer);
+      evidence_size = body.byteLength;
 
-    const { error: uploadError } = await supabase.storage
-      .from(DENUNCIAS_EVIDENCE_BUCKET)
-      .upload(evidence_path, body, {
-        contentType: evidence_mime,
-        upsert: false,
-      });
+      const { error: uploadError } = await supabase.storage
+        .from(DENUNCIAS_EVIDENCE_BUCKET)
+        .upload(evidence_path, body, {
+          contentType: evidence_mime,
+          upsert: false,
+        });
 
-    if (uploadError) {
-      throw uploadError;
+      if (uploadError) {
+        throw uploadError;
+      }
     }
   }
 
@@ -92,7 +107,7 @@ export async function insertDenunciaInSupabase(input: {
   });
 
   if (insertError) {
-    if (evidence_path) {
+    if (evidence_path && !pre?.path) {
       await supabase.storage.from(DENUNCIAS_EVIDENCE_BUCKET).remove([evidence_path]);
     }
     throw insertError;

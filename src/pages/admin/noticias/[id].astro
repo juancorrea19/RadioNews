@@ -41,7 +41,7 @@ const saved = Astro.url.searchParams.get("saved");
       </div>
     )}
 
-    <form id="edit-noticia-form" method="POST" action="/api/admin/news/save" enctype="multipart/form-data" class="grid gap-6 lg:grid-cols-2">
+    <form id="edit-noticia-form" method="POST" action="/api/admin/news/save" class="grid gap-6 lg:grid-cols-2">
       <input type="hidden" name="id" value={article.id} />
       <label class="block">
         <span class="mb-2 block text-sm text-white/75">Titulo</span>

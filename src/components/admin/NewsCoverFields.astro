@@ -10,10 +10,12 @@ const { article = null, isNew = false } = Astro.props;
 const mediaType = article?.cover_media_type ?? "image";
 ---
 
-<input type="hidden" name="existingCoverImageUrl" value={article?.cover_image_url ?? ""} />
-<input type="hidden" name="existingCoverImagePath" value={article?.cover_image_path ?? ""} />
-<input type="hidden" name="existingCoverVideoUrl" value={article?.cover_video_url ?? ""} />
-<input type="hidden" name="existingCoverVideoPath" value={article?.cover_video_path ?? ""} />
+<input type="hidden" name="existingCoverImageUrl" id="existingCoverImageUrl" value={article?.cover_image_url ?? ""} />
+<input type="hidden" name="existingCoverImagePath" id="existingCoverImagePath" value={article?.cover_image_path ?? ""} />
+<input type="hidden" name="existingCoverVideoUrl" id="existingCoverVideoUrl" value={article?.cover_video_url ?? ""} />
+<input type="hidden" name="existingCoverVideoPath" id="existingCoverVideoPath" value={article?.cover_video_path ?? ""} />
+<input type="hidden" name="obsoleteCoverImagePath" id="obsoleteCoverImagePath" value="" />
+<input type="hidden" name="obsoleteCoverVideoPath" id="obsoleteCoverVideoPath" value="" />
 
 <label class="block lg:col-span-2">
   <span class="mb-2 block text-sm text-white/75">Tipo de portada</span>
@@ -35,12 +37,15 @@ const mediaType = article?.cover_media_type ?? "image";
     </span>
     <input
       type="file"
-      name="coverVideo"
       id="coverVideoInput"
       accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov"
-      required={isNew && mediaType === "video"}
+      data-upload-purpose="news-video"
       class="block w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-sm text-white/80 file:mr-4 file:rounded-full file:border-0 file:bg-[#a62b2b] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
     />
+    <p class="mt-2 text-xs text-white/50">
+      El video se sube directo al almacenamiento (no pasa por el servidor web).
+    </p>
+    <p id="cover-video-upload-status" class="mt-2 hidden text-xs text-white/70"></p>
     {article?.cover_video_url && mediaType === "video" && (
       <video
         src={`/api/news-media?src=${encodeURIComponent(article.cover_video_url)}`}
@@ -60,10 +65,9 @@ const mediaType = article?.cover_media_type ?? "image";
   </span>
   <input
     type="file"
-    name="coverImage"
     id="coverImageInput"
     accept="image/*"
-    required={isNew && mediaType === "image"}
+    data-upload-purpose="news-image"
     class="block w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-sm text-white/80 file:mr-4 file:rounded-full file:border-0 file:bg-[#a62b2b] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
   />
   {article?.cover_image_url && (
@@ -71,15 +75,18 @@ const mediaType = article?.cover_media_type ?? "image";
   )}
   <p id="cover-image-hint" class="mt-2 text-xs leading-5 text-white/50">
     {mediaType === "video"
-      ? "Miniatura recomendada: 16:9 (1920×1080 px). El servidor la ajusta al subirla."
-      : "Formato recomendado: 16:9 (1920×1080 px), JPG o PNG. Centra el sujeto principal; al guardar se normaliza a 1920×1080."}
+      ? "Miniatura recomendada: 16:9 (1920×1080 px). Se sube directo al almacenamiento."
+      : "Formato recomendado: 16:9 (1920×1080 px), JPG o PNG (max. 6 MB). Se sube directo al almacenamiento."}
   </p>
+  <p id="cover-image-upload-status" class="mt-2 hidden text-xs text-white/70"></p>
   <p id="cover-video-thumb-hint" class="mt-2 text-xs text-white/50" hidden={mediaType !== "video"}>
     Si no subes miniatura, en listados se usara un marcador por defecto.
   </p>
 </label>
 
 <script>
+  import { directUpload, formatUploadLabel } from "../../scripts/direct-upload";
+
   function syncCoverFields() {
     const select = document.getElementById("coverMediaType");
     const videoBlock = document.getElementById("cover-video-block");
@@ -100,12 +107,18 @@ const mediaType = article?.cover_media_type ?? "image";
 
     const isVideo = select.value === "video";
     const isNew = select.dataset.isNew === "true";
+    const imagePath = document.getElementById("existingCoverImagePath");
+    const videoPath = document.getElementById("existingCoverVideoPath");
+    const hasImage =
+      imagePath instanceof HTMLInputElement && Boolean(imagePath.value.trim());
+    const hasVideo =
+      videoPath instanceof HTMLInputElement && Boolean(videoPath.value.trim());
 
     videoBlock.hidden = !isVideo;
-    imageInput.required = !isVideo && isNew;
+    imageInput.required = !isVideo && isNew && !hasImage;
 
     if (videoInput instanceof HTMLInputElement) {
-      videoInput.required = isVideo && isNew;
+      videoInput.required = isVideo && isNew && !hasVideo;
     }
 
     labelText.textContent = isVideo
@@ -116,8 +129,8 @@ const mediaType = article?.cover_media_type ?? "image";
 
     if (hint) {
       hint.textContent = isVideo
-        ? "Miniatura recomendada: 16:9 (1920×1080 px). El servidor la ajusta al subirla."
-        : "Formato recomendado: 16:9 (1920×1080 px), JPG o PNG. Centra el sujeto principal; al guardar se normaliza a 1920×1080.";
+        ? "Miniatura recomendada: 16:9 (1920×1080 px). Se sube directo al almacenamiento."
+        : "Formato recomendado: 16:9 (1920×1080 px), JPG o PNG (max. 6 MB). Se sube directo al almacenamiento.";
     }
 
     if (videoThumbHint) {
@@ -125,9 +138,125 @@ const mediaType = article?.cover_media_type ?? "image";
     }
   }
 
-  const select = document.getElementById("coverMediaType");
-  if (select) {
-    select.addEventListener("change", syncCoverFields);
-    syncCoverFields();
+  function setStatus(el: Element | null, message: string, isError = false) {
+    if (!(el instanceof HTMLElement)) return;
+    el.classList.toggle("hidden", !message);
+    el.classList.toggle("text-red-300", isError);
+    el.classList.toggle("text-emerald-300", !isError && message.includes("listo"));
+    el.classList.toggle("text-white/70", !isError && !message.includes("listo"));
+    el.textContent = message;
   }
+
+  async function uploadSelectedFile(
+    input: HTMLInputElement,
+    purpose: "news-image" | "news-video",
+    statusEl: Element | null,
+  ) {
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const urlField = document.getElementById(
+      purpose === "news-video" ? "existingCoverVideoUrl" : "existingCoverImageUrl",
+    );
+    const pathField = document.getElementById(
+      purpose === "news-video" ? "existingCoverVideoPath" : "existingCoverImagePath",
+    );
+    const obsoleteField = document.getElementById(
+      purpose === "news-video" ? "obsoleteCoverVideoPath" : "obsoleteCoverImagePath",
+    );
+
+    if (
+      !(urlField instanceof HTMLInputElement) ||
+      !(pathField instanceof HTMLInputElement) ||
+      !(obsoleteField instanceof HTMLInputElement)
+    ) {
+      return;
+    }
+
+    const previousPath = pathField.value.trim();
+    const form = input.closest("form");
+    const submit = form?.querySelector('button[type="submit"]');
+
+    try {
+      if (submit instanceof HTMLButtonElement) {
+        submit.disabled = true;
+      }
+      setStatus(statusEl, formatUploadLabel(purpose, 0));
+
+      const uploaded = await directUpload(purpose, file, {
+        onProgress: (percent) => setStatus(statusEl, formatUploadLabel(purpose, percent)),
+      });
+
+      if (previousPath && previousPath !== uploaded.path) {
+        obsoleteField.value = previousPath;
+      }
+
+      urlField.value = uploaded.publicUrl;
+      pathField.value = uploaded.path;
+      input.required = false;
+      setStatus(statusEl, purpose === "news-video" ? "Video listo para guardar." : "Imagen lista para guardar.");
+      syncCoverFields();
+    } catch (error) {
+      input.value = "";
+      setStatus(
+        statusEl,
+        error instanceof Error ? error.message : "No se pudo subir el archivo.",
+        true,
+      );
+    } finally {
+      if (submit instanceof HTMLButtonElement) {
+        submit.disabled = false;
+      }
+    }
+  }
+
+  function bindNewsCoverUploads() {
+    const select = document.getElementById("coverMediaType");
+    const imageInput = document.getElementById("coverImageInput");
+    const videoInput = document.getElementById("coverVideoInput");
+    const imageStatus = document.getElementById("cover-image-upload-status");
+    const videoStatus = document.getElementById("cover-video-upload-status");
+    const form = select?.closest("form");
+
+    if (select) {
+      select.addEventListener("change", syncCoverFields);
+      syncCoverFields();
+    }
+
+    if (imageInput instanceof HTMLInputElement) {
+      imageInput.addEventListener("change", () => {
+        void uploadSelectedFile(imageInput, "news-image", imageStatus);
+      });
+    }
+
+    if (videoInput instanceof HTMLInputElement) {
+      videoInput.addEventListener("change", () => {
+        void uploadSelectedFile(videoInput, "news-video", videoStatus);
+      });
+    }
+
+    form?.addEventListener("submit", (event) => {
+      const mediaType =
+        select instanceof HTMLSelectElement ? select.value : "image";
+      const imagePath = document.getElementById("existingCoverImagePath");
+      const videoPath = document.getElementById("existingCoverVideoPath");
+      const hasImage =
+        imagePath instanceof HTMLInputElement && Boolean(imagePath.value.trim());
+      const hasVideo =
+        videoPath instanceof HTMLInputElement && Boolean(videoPath.value.trim());
+
+      if (mediaType === "video" && !hasVideo) {
+        event.preventDefault();
+        setStatus(videoStatus, "Sube un video antes de guardar.", true);
+        return;
+      }
+
+      if (mediaType === "image" && !hasImage) {
+        event.preventDefault();
+        setStatus(imageStatus, "Sube una imagen antes de guardar.", true);
+      }
+    });
+  }
+
+  bindNewsCoverUploads();
 </script>
