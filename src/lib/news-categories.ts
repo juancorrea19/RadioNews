@@ -1,47 +1,47 @@
 export const NEWS_CATEGORY_META = {
   "ultima-hora": {
-    title: "Ultima hora",
-    accentColor: "#a62b2b",
+    title: "Última hora",
+    accentColor: "#e30713",
   },
   "lo-ultimo": {
-    title: "Lo ultimo",
-    accentColor: "#a62b2b",
+    title: "Lo último",
+    accentColor: "#e30713",
   },
   judicial: {
     title: "Judicial",
-    accentColor: "#a62b2b",
+    accentColor: "#e30713",
   },
   actualidad: {
     title: "Actualidad",
-    accentColor: "#a62b2b",
+    accentColor: "#e30713",
   },
   internacional: {
     title: "Internacional",
-    accentColor: "#a62b2b",
+    accentColor: "#e30713",
   },
   nacion: {
     title: "Nación",
-    accentColor: "#a62b2b",
+    accentColor: "#e30713",
   },
   entretenimiento: {
     title: "Entretenimiento",
-    accentColor: "#a62b2b",
+    accentColor: "#e30713",
   },
   "magazine-cultural": {
     title: "Magazine Cultural",
-    accentColor: "#a62b2b",
+    accentColor: "#e30713",
   },
   deportes: {
     title: "Deportes",
-    accentColor: "#a62b2b",
+    accentColor: "#e30713",
   },
   economia: {
     title: "Economia",
-    accentColor: "#a62b2b",
+    accentColor: "#e30713",
   },
   ciencia: {
     title: "Ciencia",
-    accentColor: "#a62b2b",
+    accentColor: "#e30713",
   },
 } as const;
 

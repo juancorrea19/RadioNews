@@ -23,7 +23,7 @@ const mediaType = article?.cover_media_type ?? "image";
     name="coverMediaType"
     id="coverMediaType"
     data-is-new={isNew ? "true" : "false"}
-    class="w-full max-w-md rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]"
+    class="w-full max-w-md rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#e30713]"
   >
     <option value="image" selected={mediaType === "image"}>Imagen</option>
     <option value="video" selected={mediaType === "video"}>Video</option>
@@ -40,7 +40,7 @@ const mediaType = article?.cover_media_type ?? "image";
       id="coverVideoInput"
       accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov"
       data-upload-purpose="news-video"
-      class="block w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-sm text-white/80 file:mr-4 file:rounded-full file:border-0 file:bg-[#a62b2b] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
+      class="block w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-sm text-white/80 file:mr-4 file:rounded-full file:border-0 file:bg-red-brand file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
     />
     <p class="mt-2 text-xs text-white/50">
       El video se sube directo al almacenamiento (no pasa por el servidor web).
@@ -48,7 +48,7 @@ const mediaType = article?.cover_media_type ?? "image";
     <p id="cover-video-upload-status" class="mt-2 hidden text-xs text-white/70"></p>
     {article?.cover_video_url && mediaType === "video" && (
       <video
-        src={`/api/news-media?src=${encodeURIComponent(article.cover_video_url)}`}
+        src={article.cover_video_url}
         controls
         playsinline
         preload="metadata"
@@ -68,7 +68,7 @@ const mediaType = article?.cover_media_type ?? "image";
     id="coverImageInput"
     accept="image/*"
     data-upload-purpose="news-image"
-    class="block w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-sm text-white/80 file:mr-4 file:rounded-full file:border-0 file:bg-[#a62b2b] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
+    class="block w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-sm text-white/80 file:mr-4 file:rounded-full file:border-0 file:bg-red-brand file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
   />
   {article?.cover_image_url && (
     <img src={article.cover_image_url} alt={article.title} class="mt-4 aspect-video w-full max-w-xl rounded-2xl object-cover object-center" />

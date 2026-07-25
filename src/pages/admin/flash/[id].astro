@@ -68,7 +68,7 @@ const saved = Astro.url.searchParams.get("saved");
           name="category"
           value={slide.category}
           required
-          class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]"
+          class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#e30713]"
         />
       </label>
 
@@ -78,7 +78,7 @@ const saved = Astro.url.searchParams.get("saved");
           type="number"
           name="sortOrder"
           value={slide.sort_order}
-          class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]"
+          class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#e30713]"
         />
       </label>
 
@@ -89,13 +89,13 @@ const saved = Astro.url.searchParams.get("saved");
           name="title"
           value={slide.title}
           required
-          class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]"
+          class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#e30713]"
         />
       </label>
 
       <label class="block lg:col-span-2">
         <span class="mb-2 block text-sm text-white/75">Texto</span>
-        <textarea name="body" rows="8" required class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]">{slide.body}</textarea>
+        <textarea name="body" rows="8" required class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#e30713]">{slide.body}</textarea>
       </label>
 
       <label class="block">
@@ -105,13 +105,13 @@ const saved = Astro.url.searchParams.get("saved");
           name="dateLine"
           value={slide.date_line}
           required
-          class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]"
+          class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#e30713]"
         />
       </label>
 
       <label class="block">
         <span class="mb-2 block text-sm text-white/75">Estado</span>
-        <select name="status" class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]">
+        <select name="status" class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#e30713]">
           <option value="draft" selected={slide.status === "draft"}>Borrador</option>
           <option value="published" selected={slide.status === "published"}>Publicado</option>
         </select>
@@ -123,7 +123,7 @@ const saved = Astro.url.searchParams.get("saved");
           type="file"
           id="flashImageInput"
           accept="image/*"
-          class="block w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-sm text-white/80 file:mr-4 file:rounded-full file:border-0 file:bg-[#a62b2b] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
+          class="block w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-sm text-white/80 file:mr-4 file:rounded-full file:border-0 file:bg-red-brand file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
         />
         <p class="mt-2 text-xs text-white/50">Se sube directo al almacenamiento.</p>
         <p id="flash-upload-status" class="mt-2 hidden text-xs text-white/70"></p>
@@ -133,7 +133,7 @@ const saved = Astro.url.searchParams.get("saved");
       </label>
 
       <div class="flex justify-end lg:col-span-2">
-        <button type="submit" class="rounded-full bg-[#a62b2b] px-6 py-3 font-semibold text-white transition-colors hover:bg-[#8f2424]">
+        <button type="submit" class="btn-brand px-6 py-3">
           Guardar cambios
         </button>
       </div>

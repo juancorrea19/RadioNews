@@ -27,7 +27,7 @@ const FALLBACK_ITEMS: TickerItem[] = [
   },
   {
     id: "clima",
-    label: "Bogota",
+    label: "Bogotá",
     value: "Cargando...",
     icon: "\u2600\uFE0F",
   },
@@ -117,7 +117,7 @@ export default function TickerBar() {
       <div className="flex items-center">
         <div
           className="shrink-0 whitespace-nowrap border-r border-white/10 px-6 py-4 text-[13px] font-bold uppercase tracking-widest text-white"
-          style={{ backgroundColor: "#a62b2b" }}
+          style={{ backgroundColor: "#e30713" }}
         >
           En vivo
         </div>

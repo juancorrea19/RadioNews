@@ -186,8 +186,8 @@ function CardHorizontal({ item }: { item: NewsItem }) {
           <img src={Logo.src} alt="Radio News" className="absolute top-1 right-1 w-7 h-7 object-contain" />
         </div>
         <div className="flex flex-col gap-1 min-w-0">
-          <span className="rounded-full bg-[#a62b2b]/90 px-3 py-1 text-[8px] uppercase tracking-[0.18em] text-white w-fit">{item.category}</span>
-          <h3 className="text-[13px] font-newsreader font-semibold text-slate-900 leading-snug line-clamp-2 group-hover:text-[#a62b2b] transition-colors">
+          <span className="tag-brand rounded-full px-3 py-1 text-[8px] uppercase tracking-[0.18em] w-fit">{item.category}</span>
+          <h3 className="text-[13px] font-newsreader font-semibold text-slate-900 leading-snug line-clamp-2 group-hover:text-[#e30713] transition-colors">
             {item.headline}
           </h3>
           <span className="text-[15px] text-gray-600">{item.timeAgo}</span>
@@ -232,7 +232,7 @@ function CardVertical({
         </div>
         <div className={`flex flex-col gap-1 shrink-0 ${compact ? 'p-2' : 'p-4'}`}>
           <div className="flex items-center gap-2 min-w-0">
-            <span className="rounded-full bg-[#a62b2b]/90 px-2 py-0.5 text-[7px] uppercase tracking-[0.18em] text-white w-fit truncate">
+            <span className="tag-brand rounded-full px-2 py-0.5 text-[7px] uppercase tracking-[0.18em] w-fit truncate">
               {item.category}
             </span>
             {!compact && (
@@ -243,7 +243,7 @@ function CardVertical({
             )}
           </div>
           <h3
-            className={`font-newsreader font-bold text-slate-900 leading-tight group-hover:text-[#a62b2b] transition-colors ${
+            className={`font-newsreader font-bold text-slate-900 leading-tight group-hover:text-[#e30713] transition-colors ${
               large ? 'text-[18px] md:text-[22px]' : compact ? 'text-[12px] line-clamp-2' : 'text-[14px]'
             }`}
           >
@@ -282,7 +282,7 @@ function CardOverlay({
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-4 flex flex-col gap-1">
-          <span className="rounded-full bg-[#a62b2b]/90 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-white w-fit">{item.category}</span>
+          <span className="tag-brand rounded-full px-3 py-1 text-[10px] uppercase tracking-[0.18em] w-fit">{item.category}</span>
           <h3 className="font-newsreader font-bold text-white leading-snug text-[18px] md:text-[17px]">
             {item.headline}
           </h3>
@@ -681,7 +681,7 @@ function SectionDivider({ title, accent }: { title: string; accent: string }) {
       </div>
       <a
         href="#"
-        className="text-[11px] uppercase tracking-widest font-semibold px-3 py-1.5 rounded-full border border-[#a62b2b] bg-[#a62b2b] text-white transition-colors duration-200 hover:bg-[#8a2424] hover:border-[#8a2424]"
+        className="btn-brand px-3 py-1.5 text-[11px] uppercase tracking-widest"
       >
         Ver todo →
       </a>
@@ -704,7 +704,7 @@ function resolveLayout(slug: string, index: number): number {
 export const CategorySection: React.FC<CategorySectionProps> = ({
   title,
   news,
-  accentColor = '#a62b2b',
+  accentColor = '#e30713',
   layoutIndex = 0,
   slug = '',
 }) => {

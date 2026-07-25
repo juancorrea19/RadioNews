@@ -11,7 +11,7 @@ export default function RadioPlayer() {
 
   // Simulación de cambio de contenido (esto vendría de tu servidor de streaming)
   const currentStation = isLive ? "Emisión en Vivo: Noticiero Central" : "Radio News - Música & Publicidad";
-  const accentColor = "#a62b2b";
+  const accentColor = "#e30713";
 
   const togglePlay = () => {
     if (audioRef.current) {

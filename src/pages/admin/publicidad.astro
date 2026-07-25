@@ -100,32 +100,32 @@ const cleared = Astro.url.searchParams.get("cleared");
 
           <label class="block">
             <span class="mb-2 block text-sm text-white/75">Etiqueta</span>
-            <input type="text" name="label" value={s.label} required class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]" />
+            <input type="text" name="label" value={s.label} required class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#e30713]" />
           </label>
 
           <label class="block">
             <span class="mb-2 block text-sm text-white/75">Titulo del bloque</span>
-            <input type="text" name="title" value={s.title} required class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]" />
+            <input type="text" name="title" value={s.title} required class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#e30713]" />
           </label>
 
           <label class="block lg:col-span-2">
             <span class="mb-2 block text-sm text-white/75">Descripcion</span>
-            <textarea name="description" rows="3" class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]">{s.description}</textarea>
+            <textarea name="description" rows="3" class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#e30713]">{s.description}</textarea>
           </label>
 
           <label class="block">
             <span class="mb-2 block text-sm text-white/75">Enlace (URL, opcional)</span>
-            <input type="text" name="href" value={s.href} placeholder="https://..." class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]" />
+            <input type="text" name="href" value={s.href} placeholder="https://..." class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#e30713]" />
           </label>
 
           <label class="block">
             <span class="mb-2 block text-sm text-white/75">Texto CTA</span>
-            <input type="text" name="cta" value={s.cta} class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]" />
+            <input type="text" name="cta" value={s.cta} class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#e30713]" />
           </label>
 
           <label class="block lg:col-span-2">
             <span class="mb-2 block text-sm text-white/75">Texto alternativo imagen</span>
-            <input type="text" name="alt" value={s.alt} class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]" />
+            <input type="text" name="alt" value={s.alt} class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#e30713]" />
           </label>
 
           <label class="block lg:col-span-2">
@@ -134,7 +134,7 @@ const cleared = Astro.url.searchParams.get("cleared");
               type="file"
               accept="image/*"
               data-ads-file
-              class="block w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-sm text-white/80 file:mr-4 file:rounded-full file:border-0 file:bg-[#a62b2b] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
+              class="block w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-sm text-white/80 file:mr-4 file:rounded-full file:border-0 file:bg-red-brand file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
             />
             <p class="mt-2 text-xs text-white/50">Se sube directo al almacenamiento.</p>
             <p data-ads-status class="mt-2 hidden text-xs text-white/70"></p>
@@ -142,7 +142,7 @@ const cleared = Astro.url.searchParams.get("cleared");
           </label>
 
           <div class="flex justify-end lg:col-span-2">
-            <button type="submit" class="rounded-full bg-[#a62b2b] px-6 py-3 font-semibold text-white transition-colors hover:bg-[#8f2424]">
+            <button type="submit" class="btn-brand px-6 py-3">
               Guardar este espacio
             </button>
           </div>

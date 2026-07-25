@@ -46,17 +46,17 @@ interface RawCategoryData {
 }
 
 export const CATEGORY_COLORS: Record<string, string> = {
-  'ultima-hora': '#a62b2b',
-  'lo-ultimo': '#a62b2b',
-  judicial: '#a62b2b',
-  actualidad: '#a62b2b',
-  internacional: '#a62b2b',
-  nacion: '#a62b2b',
-  entretenimiento: '#a62b2b',
-  'magazine-cultural': '#a62b2b',
-  deportes: '#a62b2b',
-  economia: '#a62b2b',
-  ciencia: '#a62b2b',
+  'ultima-hora': '#e30713',
+  'lo-ultimo': '#e30713',
+  judicial: '#e30713',
+  actualidad: '#e30713',
+  internacional: '#e30713',
+  nacion: '#e30713',
+  entretenimiento: '#e30713',
+  'magazine-cultural': '#e30713',
+  deportes: '#e30713',
+  economia: '#e30713',
+  ciencia: '#e30713',
 }
 
 function slugify(value: string): string {
@@ -127,21 +127,21 @@ const rawCategoriesData: RawCategoryData[] = [
     ],
   },
   {
-    title: 'Lo ultimo',
+    title: 'Lo último',
     slug: 'lo-ultimo',
     accentColor: CATEGORY_COLORS['lo-ultimo'],
     news: [
       {
         id: 'lu1',
         image: carta1,
-        category: 'Lo ultimo',
+        category: 'Lo último',
         timeAgo: '15m',
-        headline: 'Lo ultimo en la agenda informativa del dia',
+        headline: 'Lo último en la agenda informativa del dia',
       },
       {
         id: 'lu2',
         image: carta2,
-        category: 'Lo ultimo',
+        category: 'Lo último',
         timeAgo: '40m',
         headline: 'Resumen de los hechos mas recientes',
       },

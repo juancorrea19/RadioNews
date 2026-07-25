@@ -3,6 +3,7 @@ import AdminLayout from "../../../layouts/AdminLayout.astro";
 import { NEWS_CATEGORY_OPTIONS } from "../../../lib/news-categories";
 import { getAuthenticatedAdmin } from "../../../lib/server/admin-auth";
 import NewsCoverFields from "../../../components/admin/NewsCoverFields.astro";
+import SpellcheckAssist from "../../../components/admin/SpellcheckAssist.astro";
 import { formatDatetimeLocal, getAdminNewsById } from "../../../lib/server/news-admin";
 
 const session = await getAuthenticatedAdmin(Astro.cookies);
@@ -41,16 +42,27 @@ const saved = Astro.url.searchParams.get("saved");
       </div>
     )}
 
-    <form id="edit-noticia-form" method="POST" action="/api/admin/news/save" class="grid gap-6 lg:grid-cols-2">
+    <form id="edit-noticia-form" method="POST" action="/api/admin/news/save" class="grid gap-6 lg:grid-cols-2" lang="es">
       <input type="hidden" name="id" value={article.id} />
-      <label class="block">
+      <label class="block" data-spellcheck-wrap>
         <span class="mb-2 block text-sm text-white/75">Titulo</span>
-        <input type="text" name="title" value={article.title} required class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]" />
+        <input
+          type="text"
+          name="title"
+          value={article.title}
+          required
+          lang="es"
+          spellcheck="true"
+          autocomplete="off"
+          data-spellcheck-lt="manual"
+          class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#e30713]"
+        />
+        <SpellcheckAssist fieldId="title" hint="Ortografia del navegador + LanguageTool (revisar al salir del campo o con el boton)." />
       </label>
 
       <label class="block">
         <span class="mb-2 block text-sm text-white/75">Categoria</span>
-        <select name="category" required class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]">
+        <select name="category" required class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#e30713]">
           {NEWS_CATEGORY_OPTIONS.map((option) => (
             <option value={option.slug} selected={option.slug === article.category}>{option.title}</option>
           ))}
@@ -59,22 +71,30 @@ const saved = Astro.url.searchParams.get("saved");
 
       <label class="block">
         <span class="mb-2 block text-sm text-white/75">Redactor</span>
-        <input type="text" name="author" value={article.author ?? "Redaccion Radio News Online"} class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]" />
+        <input type="text" name="author" value={article.author ?? "Redaccion Radio News Online"} class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#e30713]" />
       </label>
 
       <label class="block">
         <span class="mb-2 block text-sm text-white/75">Fecha de publicacion</span>
-        <input type="datetime-local" name="publishedAt" value={formatDatetimeLocal(article.published_at)} required class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]" />
+        <input type="datetime-local" name="publishedAt" value={formatDatetimeLocal(article.published_at)} required class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#e30713]" />
       </label>
 
-      <label class="block lg:col-span-2">
+      <label class="block lg:col-span-2" data-spellcheck-wrap>
         <span class="mb-2 block text-sm text-white/75">Descripcion corta</span>
-        <textarea name="excerpt" rows="3" class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]">{article.excerpt ?? ""}</textarea>
+        <textarea
+          name="excerpt"
+          rows="3"
+          lang="es"
+          spellcheck="true"
+          data-spellcheck-lt="manual"
+          class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#e30713]"
+        >{article.excerpt ?? ""}</textarea>
+        <SpellcheckAssist fieldId="excerpt" />
       </label>
 
       <label class="block">
         <span class="mb-2 block text-sm text-white/75">Estado</span>
-        <select name="status" class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]">
+        <select name="status" class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#e30713]">
           <option value="draft" selected={article.status === "draft"}>Borrador</option>
           <option value="published" selected={article.status === "published"}>Publicado</option>
         </select>
@@ -82,13 +102,22 @@ const saved = Astro.url.searchParams.get("saved");
 
       <NewsCoverFields article={article} />
 
-      <label class="block lg:col-span-2">
+      <label class="block lg:col-span-2" data-spellcheck-wrap>
         <span class="mb-2 block text-sm text-white/75">Articulo completo</span>
-        <textarea name="body" rows="14" required class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#a62b2b]">{article.body}</textarea>
+        <textarea
+          name="body"
+          rows="14"
+          required
+          lang="es"
+          spellcheck="true"
+          data-spellcheck-lt="auto"
+          class="w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#e30713]"
+        >{article.body}</textarea>
+        <SpellcheckAssist fieldId="body" hint="Se revisa solo mientras escribes (LanguageTool). El navegador tambien subrayara faltas." />
       </label>
 
       <div class="lg:col-span-2 flex justify-end">
-        <button type="submit" class="rounded-full bg-[#a62b2b] px-6 py-3 font-semibold text-white transition-colors hover:bg-[#8f2424]">
+        <button type="submit" class="btn-brand px-6 py-3">
           Guardar cambios
         </button>
       </div>
@@ -109,3 +138,8 @@ const saved = Astro.url.searchParams.get("saved");
     </div>
   </section>
 </AdminLayout>
+
+<script>
+  import { bindSpellcheckAssist } from "../../../scripts/spellcheck-assist";
+  bindSpellcheckAssist();
+</script>

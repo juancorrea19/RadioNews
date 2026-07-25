@@ -42,7 +42,7 @@ const defaultTickerData = (): TickerItem[] => [
   },
   {
     id: "clima",
-    label: "Bogota",
+    label: "Bogotá",
     value: "No disponible",
     change: "Sin datos",
     icon: "\u2600\uFE0F",

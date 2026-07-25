@@ -6,9 +6,12 @@
   --color-dark-navy: #02153c;
   --color-navy: #1a2332;
   --color-slate: #444242;
-  --color-firebrick: #ac1b23;
-  --color-firebrick-light: rgba(172, 27, 35, 0.73);
+  /* Rojo del logo Radio News (#e40814 muestreado → #e30713) */
+  --color-firebrick: #e30713;
+  --color-firebrick-light: rgba(227, 7, 19, 0.73);
   --color-red-brand: #e30713;
+  --color-red-brand-dark: #b00810;
+  --color-red-brand-deep: #8a060c;
   --color-midnight-blue: #042e84;
   --color-smoke: #f2f2f2;
   --color-lavender: #ffecec;
@@ -25,6 +28,63 @@
 @layer base {
   body {
     @apply bg-dark-navy text-white;
+  }
+}
+
+@layer components {
+  /* Botón primario 3D — rojo del logo */
+  .btn-brand {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 9999px;
+    border: 1px solid #c20610;
+    background: linear-gradient(180deg, #ff3340 0%, #e30713 42%, #c20610 100%);
+    color: #fff;
+    font-weight: 600;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.35),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.18),
+      0 4px 0 #8a060c,
+      0 6px 14px rgba(0, 0, 0, 0.35);
+    transition:
+      transform 0.12s ease,
+      box-shadow 0.12s ease,
+      filter 0.12s ease;
+  }
+
+  .btn-brand:hover {
+    filter: brightness(1.06);
+  }
+
+  .btn-brand:active {
+    transform: translateY(3px);
+    filter: brightness(0.98);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.2),
+      inset 0 2px 4px rgba(0, 0, 0, 0.25),
+      0 1px 0 #8a060c,
+      0 2px 6px rgba(0, 0, 0, 0.3);
+  }
+
+  .btn-brand:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    filter: none;
+    transform: none;
+  }
+
+  /* Etiquetas / badges — mismo rojo, relieve suave */
+  .tag-brand {
+    background: linear-gradient(180deg, #f21a26 0%, #e30713 100%);
+    color: #fff;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.28),
+      0 2px 0 #8a060c,
+      0 2px 6px rgba(0, 0, 0, 0.2);
+    border: 1px solid #c20610;
   }
 }
 

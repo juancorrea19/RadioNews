@@ -1,0 +1,27 @@
+---
+interface Props {
+  /** id del campo asociado (para accesibilidad) */
+  fieldId?: string;
+  hint?: string;
+}
+
+const {
+  fieldId,
+  hint = "Corrector del navegador (subrayado) + LanguageTool (sugerencias al escribir o al salir del campo).",
+} = Astro.props;
+---
+
+<div class="mt-2 space-y-2" data-spellcheck-assist={fieldId ?? ""}>
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    <p class="text-xs leading-5 text-white/45">{hint}</p>
+    <button
+      type="button"
+      data-spellcheck-run
+      class="rounded-full border border-white/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/80 transition hover:bg-white/10"
+    >
+      Revisar ahora
+    </button>
+  </div>
+  <p data-spellcheck-status class="text-xs text-white/50">Escribe para revisar ortografia y gramatica.</p>
+  <div data-spellcheck-panel class="hidden space-y-2"></div>
+</div>
