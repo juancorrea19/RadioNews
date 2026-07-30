@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { slugify } from "./news-admin";
+import { slugify, type CoverMediaType } from "./news-admin";
 import { createSupabaseAdminClient, isSupabaseConfigured } from "./supabase";
 
 const FLASH_TABLE = "flash_slides";
@@ -16,6 +16,9 @@ export interface FlashSlideRecord {
   date_line: string;
   image_url: string | null;
   image_path: string | null;
+  cover_media_type?: CoverMediaType | null;
+  video_url: string | null;
+  video_path: string | null;
   sort_order: number;
   status: FlashSlideStatus;
   created_at: string;
@@ -153,8 +156,11 @@ export async function saveFlashSlide(input: {
   dateLine: string;
   sortOrder: number;
   status: FlashSlideStatus;
+  coverMediaType?: CoverMediaType;
   imageUrl?: string | null;
   imagePath?: string | null;
+  videoUrl?: string | null;
+  videoPath?: string | null;
 }) {
   const supabase = getAdminClient();
   const payload = {
@@ -164,8 +170,11 @@ export async function saveFlashSlide(input: {
     date_line: input.dateLine.trim(),
     sort_order: input.sortOrder,
     status: input.status,
+    cover_media_type: input.coverMediaType ?? "image",
     image_url: input.imageUrl ?? null,
     image_path: input.imagePath ?? null,
+    video_url: input.videoUrl ?? null,
+    video_path: input.videoPath ?? null,
   };
 
   if (input.id) {
@@ -202,6 +211,10 @@ export async function deleteFlashSlide(id: string) {
 
   if (row.image_path) {
     await supabase.storage.from(SITE_MEDIA_BUCKET).remove([row.image_path]);
+  }
+
+  if (row.video_path) {
+    await supabase.storage.from(SITE_MEDIA_BUCKET).remove([row.video_path]);
   }
 
   const { error } = await supabase.from(FLASH_TABLE).delete().eq("id", id);

@@ -24,6 +24,7 @@ function bucketForPurpose(purpose: UploadPurpose): string {
     case "news-video":
       return NEWS_BUCKET;
     case "flash":
+    case "flash-video":
     case "ads":
       return SITE_MEDIA_BUCKET;
     case "denuncia-evidence":
@@ -33,7 +34,7 @@ function bucketForPurpose(purpose: UploadPurpose): string {
 
 function buildObjectPath(purpose: UploadPurpose, filename: string): string {
   const base = slugify(filename.replace(/\.[^/.]+$/, "")) || "archivo";
-  const ext = fileExtension(filename) || (purpose === "news-video" ? "mp4" : "jpg");
+  const ext = fileExtension(filename) || (purpose === "news-video" || purpose === "flash-video" ? "mp4" : "jpg");
   const stamp = Date.now();
 
   switch (purpose) {
@@ -43,6 +44,8 @@ function buildObjectPath(purpose: UploadPurpose, filename: string): string {
       return `videos/${stamp}-${base}.${ext}`;
     case "flash":
       return `flash/${stamp}-${base}.${ext}`;
+    case "flash-video":
+      return `flash-videos/${stamp}-${base}.${ext}`;
     case "ads":
       return `ads/${stamp}-${base}.${ext}`;
     case "denuncia-evidence": {

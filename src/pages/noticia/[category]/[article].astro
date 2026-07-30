@@ -9,7 +9,8 @@ import { findNewsItem, getCrossCategoryNews, getRelatedNews } from '../../../lib
 import { isPosterImage, videoMimeTypeFromUrl } from '../../../lib/news-video';
 import { getResolvedAdSlots } from '../../../lib/site-content';
 import { newsArticleJsonLd } from '../../../lib/seo-jsonld';
-import { resolveSiteUrl } from '../../../lib/site-url';
+import { resolveSiteUrl, absoluteSiteUrl } from '../../../lib/site-url';
+import { getLikeCount } from '../../../lib/server/news-likes';
 
 /** Rutas resueltas en cada peticion para incluir noticias nuevas en Supabase sin redeploy. */
 export const prerender = false;
@@ -27,10 +28,13 @@ if (!article) {
   return Astro.redirect('/');
 }
 
-const [relatedNews, differentCategoryNews, adSlots] = await Promise.all([
+const likeKey = `${categorySlug}/${articleSlug}`;
+
+const [relatedNews, differentCategoryNews, adSlots, initialLikeCount] = await Promise.all([
   getRelatedNews(categorySlug, articleSlug, 4),
   getCrossCategoryNews(categorySlug, articleSlug, 6),
   getResolvedAdSlots(),
+  getLikeCount(likeKey),
 ]);
 const articleSummary =
   article.excerpt ??
@@ -45,6 +49,7 @@ const renderedArticle = article.entry ? await render(article.entry) : null;
 const Content = renderedArticle?.Content;
 const site = resolveSiteUrl(Astro.site, import.meta.env.PUBLIC_SITE_URL);
 const canonicalPath = `/noticia/${categorySlug}/${articleSlug}/`;
+const shareUrl = absoluteSiteUrl(site, canonicalPath) ?? canonicalPath;
 const articleJsonLd = newsArticleJsonLd({
   site,
   headline: article.headline,
@@ -162,6 +167,34 @@ const articleJsonLd = newsArticleJsonLd({
                   <a href="/" class="rounded-full border border-[#e30713]/25 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#e30713] transition-colors hover:bg-[#e30713] hover:text-white">
                     Volver al inicio
                   </a>
+                </div>
+
+                <div
+                  class="flex flex-wrap items-center gap-3 border-b border-slate-200 py-5"
+                  data-like-key={likeKey}
+                  data-share-url={shareUrl}
+                  data-share-title={article.headline}
+                  data-share-text={articleSummary}
+                >
+                  <button
+                    type="button"
+                    id="like-button"
+                    class="like-button flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 transition-colors hover:border-[#e30713] hover:text-[#e30713]"
+                    aria-pressed="false"
+                  >
+                    <span class="like-icon text-lg leading-none">🤍</span>
+                    <span>Me gusta</span>
+                    <span id="like-count" class="tabular-nums text-slate-500">{initialLikeCount}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    id="share-button"
+                    class="flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 transition-colors hover:border-[#e30713] hover:text-[#e30713]"
+                  >
+                    <span class="text-lg leading-none">↗</span>
+                    <span id="share-label">Compartir</span>
+                  </button>
                 </div>
 
                 <div class="article-copy mt-8 space-y-6 font-newsreader text-[19px] leading-9 text-slate-700">
@@ -311,6 +344,102 @@ const articleJsonLd = newsArticleJsonLd({
     }
   </script>
 )}
+
+<script>
+  const likeButton = document.getElementById('like-button');
+  const likeCountEl = document.getElementById('like-count');
+  const likeIconEl = likeButton?.querySelector('.like-icon');
+  const shareButton = document.getElementById('share-button');
+  const shareLabelEl = document.getElementById('share-label');
+  const toolbar = likeButton?.closest('[data-like-key]');
+
+  if (likeButton && likeCountEl && likeIconEl && toolbar instanceof HTMLElement) {
+    const likeKey = toolbar.dataset.likeKey ?? '';
+    const storageKey = `rn-like:${likeKey}`;
+    let liked = window.localStorage.getItem(storageKey) === '1';
+    let count = Number.parseInt(likeCountEl.textContent ?? '0', 10) || 0;
+    let busy = false;
+
+    const render = () => {
+      likeIconEl.textContent = liked ? '❤️' : '🤍';
+      likeCountEl.textContent = String(Math.max(count, 0));
+      likeButton.setAttribute('aria-pressed', liked ? 'true' : 'false');
+      likeButton.classList.toggle('text-[#e30713]', liked);
+      likeButton.classList.toggle('border-[#e30713]', liked);
+    };
+
+    render();
+
+    likeButton.addEventListener('click', async () => {
+      if (busy || !likeKey) return;
+      busy = true;
+
+      const nextLiked = !liked;
+      const previousCount = count;
+      liked = nextLiked;
+      count = nextLiked ? count + 1 : Math.max(count - 1, 0);
+      render();
+
+      try {
+        const response = await fetch('/api/likes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: likeKey, liked: nextLiked }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Ticker de likes respondio ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (typeof data.count === 'number') {
+          count = data.count;
+        }
+
+        window.localStorage.setItem(storageKey, nextLiked ? '1' : '0');
+      } catch (error) {
+        console.error('No se pudo actualizar el me gusta.', error);
+        liked = !nextLiked;
+        count = previousCount;
+      } finally {
+        render();
+        busy = false;
+      }
+    });
+  }
+
+  if (shareButton && shareLabelEl && toolbar instanceof HTMLElement) {
+    const shareUrl = toolbar.dataset.shareUrl ?? window.location.href;
+    const shareTitle = toolbar.dataset.shareTitle ?? document.title;
+    const shareText = toolbar.dataset.shareText ?? '';
+
+    shareButton.addEventListener('click', async () => {
+      const nav = window.navigator;
+
+      if (nav.share) {
+        try {
+          await nav.share({ title: shareTitle, text: shareText, url: shareUrl });
+          return;
+        } catch {
+          /* el usuario cancelo el menu nativo, no hacer nada */
+          return;
+        }
+      }
+
+      try {
+        await nav.clipboard.writeText(shareUrl);
+        const original = shareLabelEl.textContent;
+        shareLabelEl.textContent = '¡Enlace copiado!';
+        window.setTimeout(() => {
+          shareLabelEl.textContent = original;
+        }, 2000);
+      } catch (error) {
+        console.error('No se pudo copiar el enlace.', error);
+        window.prompt('Copia el enlace para compartir:', shareUrl);
+      }
+    });
+  }
+</script>
 
 <style>
   .article-copy :global(p) {

@@ -86,7 +86,7 @@ const deleted = Astro.url.searchParams.get("deleted");
                 </td>
                 <td class="px-5 py-4">
                   <div class="flex flex-wrap gap-2">
-                    {s.status === "published" && s.image_url && (
+                    {s.status === "published" && (s.image_url || s.video_url) && (
                       <a
                         href={flashArticleHref(s.id)}
                         target="_blank"

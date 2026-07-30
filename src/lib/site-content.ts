@@ -1,4 +1,5 @@
 import { adSlots as defaultAdSlots, type AdSlotConfig } from "../data/ads";
+import type { CoverMediaType } from "./server/news-admin";
 import { AD_SLOT_KEYS, listAdSlotRows, listPublishedFlashSlides, type AdSlotKey } from "./server/site-cms";
 import { isSupabaseConfigured } from "./server/supabase";
 
@@ -11,6 +12,8 @@ export interface FlashCarouselSlide {
   fechaLinea: string;
   imagenUrl: string;
   imagenAlt: string;
+  coverMediaType: CoverMediaType;
+  videoUrl: string | null;
 }
 
 export function flashArticleHref(id: string) {
@@ -27,7 +30,7 @@ export async function getFlashCarouselSlides(): Promise<FlashCarouselSlide[]> {
   try {
     const rows = await listPublishedFlashSlides();
     return rows
-      .filter((r) => Boolean(r.image_url?.trim()))
+      .filter((r) => Boolean(r.image_url?.trim()) || Boolean(r.video_url?.trim()))
       .map((r) => ({
         id: r.id,
         href: flashArticleHref(r.id),
@@ -35,8 +38,10 @@ export async function getFlashCarouselSlides(): Promise<FlashCarouselSlide[]> {
         titulo: r.title,
         texto: r.body,
         fechaLinea: r.date_line,
-        imagenUrl: r.image_url as string,
+        imagenUrl: r.image_url || "/favicon.png",
         imagenAlt: r.title,
+        coverMediaType: (r.cover_media_type as CoverMediaType) ?? "image",
+        videoUrl: r.video_url,
       }));
   } catch (error) {
     console.error("No se pudieron cargar las diapositivas de flash desde Supabase.", error);

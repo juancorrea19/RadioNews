@@ -37,6 +37,18 @@ const FALLBACK_ITEMS: TickerItem[] = [
     value: "Cargando...",
     icon: "\u20BF",
   },
+  {
+    id: "oro",
+    label: "Oro (XAU)",
+    value: "Cargando...",
+    icon: "\u{1FA99}",
+  },
+  {
+    id: "cafe",
+    label: "Café (arábica)",
+    value: "Cargando...",
+    icon: "\u2615",
+  },
 ];
 
 function LiveClock() {

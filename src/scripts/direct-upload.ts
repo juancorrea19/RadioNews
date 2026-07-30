@@ -118,7 +118,7 @@ export async function directUpload(
 
 export function formatUploadLabel(purpose: UploadPurpose, percent: number): string {
   const kind =
-    purpose === "news-video"
+    purpose === "news-video" || purpose === "flash-video"
       ? "video"
       : purpose === "denuncia-evidence"
         ? "evidencia"

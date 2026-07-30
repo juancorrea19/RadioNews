@@ -7,7 +7,7 @@ export const DENUNCIA_EVIDENCE_MAX_BYTES = 8 * 1024 * 1024;
 /** @deprecated Use IMAGE_MAX_BYTES */
 export const NEWS_IMAGE_MAX_BYTES = IMAGE_MAX_BYTES;
 
-export const ADMIN_UPLOAD_PURPOSES = ["news-image", "news-video", "flash", "ads"] as const;
+export const ADMIN_UPLOAD_PURPOSES = ["news-image", "news-video", "flash", "flash-video", "ads"] as const;
 export type AdminUploadPurpose = (typeof ADMIN_UPLOAD_PURPOSES)[number];
 
 export const UPLOAD_PURPOSES = [...ADMIN_UPLOAD_PURPOSES, "denuncia-evidence"] as const;
@@ -70,6 +70,7 @@ export function isAllowedDenunciaEvidence(contentType: string, filename: string)
 export function maxBytesForPurpose(purpose: UploadPurpose): number {
   switch (purpose) {
     case "news-video":
+    case "flash-video":
       return NEWS_VIDEO_MAX_BYTES;
     case "denuncia-evidence":
       return DENUNCIA_EVIDENCE_MAX_BYTES;
@@ -97,7 +98,7 @@ export function validateUploadMeta(input: {
 
   if (sizeBytes > max) {
     const mb = Math.round(max / (1024 * 1024));
-    if (purpose === "news-video") {
+    if (purpose === "news-video" || purpose === "flash-video") {
       return { ok: false, message: `El video supera el limite de ${mb} MB.` };
     }
     if (purpose === "denuncia-evidence") {
@@ -106,7 +107,7 @@ export function validateUploadMeta(input: {
     return { ok: false, message: `La imagen supera el limite de ${mb} MB.` };
   }
 
-  if (purpose === "news-video") {
+  if (purpose === "news-video" || purpose === "flash-video") {
     if (!isAllowedNewsVideo(contentType, filename)) {
       return { ok: false, message: "El video debe ser MP4, WebM o MOV." };
     }
@@ -128,7 +129,7 @@ export function resolveContentType(purpose: UploadPurpose, filename: string, con
 
   const ext = fileExtension(filename);
 
-  if (purpose === "news-video") {
+  if (purpose === "news-video" || purpose === "flash-video") {
     if (ext === "webm") return "video/webm";
     if (ext === "mov") return "video/quicktime";
     return "video/mp4";

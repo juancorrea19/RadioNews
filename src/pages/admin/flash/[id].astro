@@ -1,5 +1,6 @@
 ---
 import AdminLayout from "../../../layouts/AdminLayout.astro";
+import FlashCoverFields from "../../../components/admin/FlashCoverFields.astro";
 import { getAuthenticatedAdmin } from "../../../lib/server/admin-auth";
 import { flashArticleHref } from "../../../lib/site-content";
 import { getAdminFlashSlideById } from "../../../lib/server/site-cms";
@@ -41,7 +42,7 @@ const saved = Astro.url.searchParams.get("saved");
       <div class="mb-6 rounded-2xl border border-emerald-400/25 bg-emerald-400/10 p-4 text-sm text-emerald-100">Guardado correctamente.</div>
     )}
 
-    {slide.status === "published" && slide.image_url && (
+    {slide.status === "published" && (slide.image_url || slide.video_url) && (
       <div class="mb-6 rounded-2xl border border-white/10 bg-[#06172f] p-4 text-sm text-white/80">
         <span class="text-white/55">Pagina publica:</span>{" "}
         <a
@@ -57,9 +58,6 @@ const saved = Astro.url.searchParams.get("saved");
 
     <form method="POST" action="/api/admin/flash/save" class="grid gap-6 lg:grid-cols-2" id="flash-edit-form">
       <input type="hidden" name="id" value={slide.id} />
-      <input type="hidden" name="existingImageUrl" id="flashExistingImageUrl" value={slide.image_url ?? ""} />
-      <input type="hidden" name="existingImagePath" id="flashExistingImagePath" value={slide.image_path ?? ""} />
-      <input type="hidden" name="obsoleteImagePath" id="flashObsoleteImagePath" value="" />
 
       <label class="block">
         <span class="mb-2 block text-sm text-white/75">Categoria</span>
@@ -117,20 +115,7 @@ const saved = Astro.url.searchParams.get("saved");
         </select>
       </label>
 
-      <label class="block lg:col-span-2">
-        <span class="mb-2 block text-sm text-white/75">Cambiar imagen (opcional, max. 6 MB)</span>
-        <input
-          type="file"
-          id="flashImageInput"
-          accept="image/*"
-          class="block w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-sm text-white/80 file:mr-4 file:rounded-full file:border-0 file:bg-red-brand file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
-        />
-        <p class="mt-2 text-xs text-white/50">Se sube directo al almacenamiento.</p>
-        <p id="flash-upload-status" class="mt-2 hidden text-xs text-white/70"></p>
-        {slide.image_url && (
-          <img src={slide.image_url} alt="" class="mt-4 h-40 w-full max-w-md rounded-2xl object-cover" />
-        )}
-      </label>
+      <FlashCoverFields slide={slide} />
 
       <div class="flex justify-end lg:col-span-2">
         <button type="submit" class="btn-brand px-6 py-3">
@@ -140,29 +125,3 @@ const saved = Astro.url.searchParams.get("saved");
     </form>
   </section>
 </AdminLayout>
-
-<script>
-  import { bindDirectFileInput } from "../../../scripts/direct-upload";
-
-  const fileInput = document.getElementById("flashImageInput");
-  const urlInput = document.getElementById("flashExistingImageUrl");
-  const pathInput = document.getElementById("flashExistingImagePath");
-  const obsoleteInput = document.getElementById("flashObsoleteImagePath");
-  const statusEl = document.getElementById("flash-upload-status");
-
-  if (
-    fileInput instanceof HTMLInputElement &&
-    urlInput instanceof HTMLInputElement &&
-    pathInput instanceof HTMLInputElement
-  ) {
-    bindDirectFileInput({
-      purpose: "flash",
-      fileInput,
-      urlInput,
-      pathInput,
-      obsoleteInput: obsoleteInput instanceof HTMLInputElement ? obsoleteInput : null,
-      statusEl: statusEl instanceof HTMLElement ? statusEl : null,
-      requiredWhenEmpty: true,
-    });
-  }
-</script>

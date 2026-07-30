@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { getAuthenticatedAdmin } from "../../../../lib/server/admin-auth";
+import { isCoverMediaType } from "../../../../lib/server/news-admin";
 import { removeSiteMediaPath, saveFlashSlide } from "../../../../lib/server/site-cms";
 import { isSupabaseConfigured } from "../../../../lib/server/supabase";
 
@@ -26,9 +27,13 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     const dateLine = String(formData.get("dateLine") || "").trim();
     const sortOrderRaw = String(formData.get("sortOrder") || "0").trim();
     const status = String(formData.get("status") || "draft").trim();
+    const coverMediaTypeRaw = String(formData.get("coverMediaType") || "image").trim();
     const imageUrl = String(formData.get("existingImageUrl") || "").trim() || null;
     const imagePath = String(formData.get("existingImagePath") || "").trim() || null;
     const obsoleteImagePath = String(formData.get("obsoleteImagePath") || "").trim();
+    const videoUrl = String(formData.get("existingVideoUrl") || "").trim() || null;
+    const videoPath = String(formData.get("existingVideoPath") || "").trim() || null;
+    const obsoleteVideoPath = String(formData.get("obsoleteVideoPath") || "").trim();
     const target = id ? `/admin/flash/${id}` : "/admin/flash/nueva";
 
     if (!category || !title || !body || !dateLine) {
@@ -39,15 +44,27 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       return redirectWithError(target, "El estado no es valido.");
     }
 
+    if (!isCoverMediaType(coverMediaTypeRaw)) {
+      return redirectWithError(target, "El tipo de portada no es valido.");
+    }
+
     const sortOrder = Number.parseInt(sortOrderRaw, 10);
     const sortOrderSafe = Number.isFinite(sortOrder) ? sortOrder : 0;
 
-    if (!imageUrl || !imagePath) {
+    if (coverMediaTypeRaw === "video") {
+      if (!videoUrl || !videoPath) {
+        return redirectWithError(target, "Debes subir un video para la diapositiva.");
+      }
+    } else if (!imageUrl || !imagePath) {
       return redirectWithError(target, "Debes subir una imagen para la diapositiva.");
     }
 
     if (obsoleteImagePath && obsoleteImagePath !== imagePath) {
       await removeSiteMediaPath(obsoleteImagePath);
+    }
+
+    if (obsoleteVideoPath && obsoleteVideoPath !== videoPath) {
+      await removeSiteMediaPath(obsoleteVideoPath);
     }
 
     const saved = await saveFlashSlide({
@@ -58,8 +75,11 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       dateLine,
       sortOrder: sortOrderSafe,
       status,
+      coverMediaType: coverMediaTypeRaw,
       imageUrl,
       imagePath,
+      videoUrl,
+      videoPath,
     });
 
     return redirect(`/admin/flash/${saved.id}?saved=1`);

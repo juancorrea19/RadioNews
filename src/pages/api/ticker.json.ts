@@ -54,6 +54,18 @@ const defaultTickerData = (): TickerItem[] => [
     change: "Sin datos",
     icon: "\u20BF",
   },
+  {
+    id: "oro",
+    label: "Oro (XAU)",
+    value: "No disponible",
+    icon: "\u{1FA99}",
+  },
+  {
+    id: "cafe",
+    label: "Café (arábica)",
+    value: "No disponible",
+    icon: "\u2615",
+  },
 ];
 
 function formatSignedPercent(value?: string | number | null) {
@@ -92,6 +104,42 @@ function toFiniteNumber(value: unknown): number {
 
 function getTickerItemById(items: TickerItem[], id: string) {
   return items.find((item) => item.id === id);
+}
+
+interface CommodityRatesResponse {
+  success?: boolean;
+  rates?: Record<string, number>;
+}
+
+async function fetchCommodityRates(apiKey: string, symbols: string[]): Promise<Record<string, number>> {
+  const response = await fetch(
+    `https://api.commoditypriceapi.com/v2/rates/latest?symbols=${symbols.map(encodeURIComponent).join(",")}`,
+    { headers: { "x-api-key": apiKey } },
+  );
+
+  if (!response.ok) {
+    throw new Error(`CommodityPriceAPI HTTP ${response.status}`);
+  }
+
+  const payload = (await response.json()) as CommodityRatesResponse;
+
+  if (!payload.success || !payload.rates) {
+    throw new Error("CommodityPriceAPI: respuesta sin datos de rates");
+  }
+
+  return payload.rates;
+}
+
+function applyCommodityRates(data: TickerItem[], rates: Record<string, number>) {
+  const gold = getTickerItemById(data, "oro");
+  if (gold && typeof rates.XAU === "number") {
+    gold.value = `$${rates.XAU.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} /oz`;
+  }
+
+  const coffee = getTickerItemById(data, "cafe");
+  if (coffee && typeof rates.CA === "number") {
+    coffee.value = `$${rates.CA.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} /lb`;
+  }
 }
 
 function applySp500FromFmpQuote(data: TickerItem[], quote: FmpQuoteItem) {
@@ -230,6 +278,7 @@ export const GET: APIRoute = async () => {
   const FMP_SP500_SYMBOL = import.meta.env.FMP_SP500_SYMBOL || "^GSPC";
   const TWELVE_DATA_KEY = import.meta.env.TWELVE_DATA_KEY;
   const TWELVE_DATA_SP500_SYMBOL = import.meta.env.TWELVE_DATA_SP500_SYMBOL || "SPY";
+  const COMMODITY_API_KEY = import.meta.env.COMMODITY_PRICE_API_KEY;
 
   try {
     const requests = await Promise.allSettled([
@@ -240,9 +289,12 @@ export const GET: APIRoute = async () => {
         ? fetch(`https://v6.exchangerate-api.com/v6/${EXCHANGE_KEY}/latest/USD`)
         : Promise.reject(new Error("Falta EXCHANGE_RATE_API_KEY")),
       fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true"),
+      COMMODITY_API_KEY
+        ? fetchCommodityRates(COMMODITY_API_KEY, ["XAU", "CA"])
+        : Promise.reject(new Error("Falta COMMODITY_PRICE_API_KEY")),
     ]);
 
-    const [weatherResult, exchangeResult, btcResult] = requests;
+    const [weatherResult, exchangeResult, btcResult, commodityResult] = requests;
 
     const data = defaultTickerData();
 
@@ -300,6 +352,12 @@ export const GET: APIRoute = async () => {
 
     if (btcResult?.status === "rejected") {
       console.error("Error consultando Bitcoin:", btcResult.reason);
+    }
+
+    if (commodityResult?.status === "fulfilled") {
+      applyCommodityRates(data, commodityResult.value);
+    } else if (commodityResult?.status === "rejected") {
+      console.error("Error consultando CommodityPriceAPI (oro/café):", commodityResult.reason);
     }
 
     return new Response(JSON.stringify(data), {

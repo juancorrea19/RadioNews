@@ -75,7 +75,7 @@ async function getFlashEntries(origin: string): Promise<SitemapEntry[]> {
     const slides = await listPublishedFlashSlides();
 
     return slides
-      .filter((slide) => Boolean(slide.image_url?.trim()))
+      .filter((slide) => Boolean(slide.image_url?.trim()) || Boolean(slide.video_url?.trim()))
       .map((slide) => ({
         loc: new URL(flashArticleHref(slide.id), origin).href,
         lastmod: toLastmod(slide.updated_at ?? slide.created_at),

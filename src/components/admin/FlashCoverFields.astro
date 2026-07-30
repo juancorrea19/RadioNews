@@ -1,0 +1,244 @@
+---
+import type { FlashSlideRecord } from "../../lib/server/site-cms";
+
+interface Props {
+  slide?: FlashSlideRecord | null;
+  isNew?: boolean;
+}
+
+const { slide = null, isNew = false } = Astro.props;
+const mediaType = slide?.cover_media_type ?? "image";
+---
+
+<input type="hidden" name="existingImageUrl" id="flashExistingImageUrl" value={slide?.image_url ?? ""} />
+<input type="hidden" name="existingImagePath" id="flashExistingImagePath" value={slide?.image_path ?? ""} />
+<input type="hidden" name="obsoleteImagePath" id="flashObsoleteImagePath" value="" />
+<input type="hidden" name="existingVideoUrl" id="flashExistingVideoUrl" value={slide?.video_url ?? ""} />
+<input type="hidden" name="existingVideoPath" id="flashExistingVideoPath" value={slide?.video_path ?? ""} />
+<input type="hidden" name="obsoleteVideoPath" id="flashObsoleteVideoPath" value="" />
+
+<label class="block lg:col-span-2">
+  <span class="mb-2 block text-sm text-white/75">Tipo de portada</span>
+  <select
+    name="coverMediaType"
+    id="flashCoverMediaType"
+    data-is-new={isNew ? "true" : "false"}
+    class="w-full max-w-md rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-white outline-none focus:border-[#e30713]"
+  >
+    <option value="image" selected={mediaType === "image"}>Imagen</option>
+    <option value="video" selected={mediaType === "video"}>Video</option>
+  </select>
+</label>
+
+<div id="flash-video-block" class="lg:col-span-2 grid gap-6" hidden={mediaType !== "video"}>
+  <label class="block">
+    <span class="mb-2 block text-sm text-white/75">
+      {isNew ? "Video (MP4, WebM o MOV, max. 100 MB)" : "Cambiar video"}
+    </span>
+    <input
+      type="file"
+      id="flashVideoInput"
+      accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov"
+      class="block w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-sm text-white/80 file:mr-4 file:rounded-full file:border-0 file:bg-red-brand file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
+    />
+    <p class="mt-2 text-xs text-white/50">
+      El video se sube directo al almacenamiento (no pasa por el servidor web).
+    </p>
+    <p id="flash-video-upload-status" class="mt-2 hidden text-xs text-white/70"></p>
+    {slide?.video_url && mediaType === "video" && (
+      <video
+        src={slide.video_url}
+        controls
+        playsinline
+        preload="metadata"
+        class="mt-4 max-h-64 w-full max-w-xl rounded-2xl bg-black"
+        poster={slide.image_url ?? undefined}
+      />
+    )}
+  </label>
+</div>
+
+<label class="block lg:col-span-2" id="flash-image-label">
+  <span class="mb-2 block text-sm text-white/75" id="flash-image-label-text">
+    {mediaType === "video"
+      ? "Miniatura para el carrusel (opcional)"
+      : isNew
+        ? "Imagen (horizontal recomendada, max. 6 MB)"
+        : "Cambiar imagen"}
+  </span>
+  <input
+    type="file"
+    id="flashImageInput"
+    accept="image/*"
+    class="block w-full rounded-2xl border border-white/10 bg-[#071a34] px-4 py-3 text-sm text-white/80 file:mr-4 file:rounded-full file:border-0 file:bg-red-brand file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
+  />
+  <p class="mt-2 text-xs text-white/50">Se sube directo al almacenamiento.</p>
+  <p id="flash-upload-status" class="mt-2 hidden text-xs text-white/70"></p>
+  {slide?.image_url && (
+    <img src={slide.image_url} alt="" class="mt-4 h-40 w-full max-w-md rounded-2xl object-cover" />
+  )}
+  <p id="flash-video-thumb-hint" class="mt-2 text-xs text-white/50" hidden={mediaType !== "video"}>
+    Si no subes miniatura, se vera un fotograma del video.
+  </p>
+</label>
+
+<script>
+  import { directUpload, formatUploadLabel } from "../../scripts/direct-upload";
+
+  function syncFlashCoverFields() {
+    const select = document.getElementById("flashCoverMediaType");
+    const videoBlock = document.getElementById("flash-video-block");
+    const imageInput = document.getElementById("flashImageInput");
+    const videoInput = document.getElementById("flashVideoInput");
+    const labelText = document.getElementById("flash-image-label-text");
+    const videoThumbHint = document.getElementById("flash-video-thumb-hint");
+
+    if (
+      !(select instanceof HTMLSelectElement) ||
+      !videoBlock ||
+      !(imageInput instanceof HTMLInputElement) ||
+      !labelText
+    ) {
+      return;
+    }
+
+    const isVideo = select.value === "video";
+    const isNew = select.dataset.isNew === "true";
+    const imagePath = document.getElementById("flashExistingImagePath");
+    const videoPath = document.getElementById("flashExistingVideoPath");
+    const hasImage = imagePath instanceof HTMLInputElement && Boolean(imagePath.value.trim());
+    const hasVideo = videoPath instanceof HTMLInputElement && Boolean(videoPath.value.trim());
+
+    videoBlock.hidden = !isVideo;
+    imageInput.required = !isVideo && isNew && !hasImage;
+
+    if (videoInput instanceof HTMLInputElement) {
+      videoInput.required = isVideo && isNew && !hasVideo;
+    }
+
+    labelText.textContent = isVideo
+      ? "Miniatura para el carrusel (opcional)"
+      : isNew
+        ? "Imagen (horizontal recomendada, max. 6 MB)"
+        : "Cambiar imagen";
+
+    if (videoThumbHint) {
+      videoThumbHint.hidden = !isVideo;
+    }
+  }
+
+  function setStatus(el: Element | null, message: string, isError = false) {
+    if (!(el instanceof HTMLElement)) return;
+    el.classList.toggle("hidden", !message);
+    el.classList.toggle("text-red-300", isError);
+    el.classList.toggle("text-emerald-300", !isError && message.includes("listo"));
+    el.classList.toggle("text-white/70", !isError && !message.includes("listo"));
+    el.textContent = message;
+  }
+
+  async function uploadSelectedFile(
+    input: HTMLInputElement,
+    purpose: "flash" | "flash-video",
+    statusEl: Element | null,
+  ) {
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const urlField = document.getElementById(
+      purpose === "flash-video" ? "flashExistingVideoUrl" : "flashExistingImageUrl",
+    );
+    const pathField = document.getElementById(
+      purpose === "flash-video" ? "flashExistingVideoPath" : "flashExistingImagePath",
+    );
+    const obsoleteField = document.getElementById(
+      purpose === "flash-video" ? "flashObsoleteVideoPath" : "flashObsoleteImagePath",
+    );
+
+    if (
+      !(urlField instanceof HTMLInputElement) ||
+      !(pathField instanceof HTMLInputElement) ||
+      !(obsoleteField instanceof HTMLInputElement)
+    ) {
+      return;
+    }
+
+    const previousPath = pathField.value.trim();
+    const form = input.closest("form");
+    const submit = form?.querySelector('button[type="submit"]');
+
+    try {
+      if (submit instanceof HTMLButtonElement) {
+        submit.disabled = true;
+      }
+      setStatus(statusEl, formatUploadLabel(purpose, 0));
+
+      const uploaded = await directUpload(purpose, file, {
+        onProgress: (percent) => setStatus(statusEl, formatUploadLabel(purpose, percent)),
+      });
+
+      if (previousPath && previousPath !== uploaded.path) {
+        obsoleteField.value = previousPath;
+      }
+
+      urlField.value = uploaded.publicUrl;
+      pathField.value = uploaded.path;
+      input.required = false;
+      setStatus(statusEl, purpose === "flash-video" ? "Video listo para guardar." : "Imagen lista para guardar.");
+      syncFlashCoverFields();
+    } catch (error) {
+      input.value = "";
+      setStatus(statusEl, error instanceof Error ? error.message : "No se pudo subir el archivo.", true);
+    } finally {
+      if (submit instanceof HTMLButtonElement) {
+        submit.disabled = false;
+      }
+    }
+  }
+
+  function bindFlashCoverUploads() {
+    const select = document.getElementById("flashCoverMediaType");
+    const imageInput = document.getElementById("flashImageInput");
+    const videoInput = document.getElementById("flashVideoInput");
+    const imageStatus = document.getElementById("flash-upload-status");
+    const videoStatus = document.getElementById("flash-video-upload-status");
+    const form = select?.closest("form");
+
+    if (select) {
+      select.addEventListener("change", syncFlashCoverFields);
+      syncFlashCoverFields();
+    }
+
+    if (imageInput instanceof HTMLInputElement) {
+      imageInput.addEventListener("change", () => {
+        void uploadSelectedFile(imageInput, "flash", imageStatus);
+      });
+    }
+
+    if (videoInput instanceof HTMLInputElement) {
+      videoInput.addEventListener("change", () => {
+        void uploadSelectedFile(videoInput, "flash-video", videoStatus);
+      });
+    }
+
+    form?.addEventListener("submit", (event) => {
+      const mediaType = select instanceof HTMLSelectElement ? select.value : "image";
+      const imagePath = document.getElementById("flashExistingImagePath");
+      const videoPath = document.getElementById("flashExistingVideoPath");
+      const hasImage = imagePath instanceof HTMLInputElement && Boolean(imagePath.value.trim());
+      const hasVideo = videoPath instanceof HTMLInputElement && Boolean(videoPath.value.trim());
+
+      if (mediaType === "video" && !hasVideo) {
+        event.preventDefault();
+        setStatus(videoStatus, "Sube un video antes de guardar.", true);
+        return;
+      }
+
+      if (mediaType === "image" && !hasImage) {
+        event.preventDefault();
+        setStatus(imageStatus, "Sube una imagen antes de guardar.", true);
+      }
+    });
+  }
+
+  bindFlashCoverUploads();
+</script>

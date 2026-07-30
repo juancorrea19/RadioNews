@@ -1,6 +1,7 @@
 ---
 import type { FlashCarouselSlide } from "../lib/site-content";
 import { COVER_IMG_BLUR_CLASS } from "../lib/cover-frames";
+import { isPosterImage } from "../lib/news-video";
 
 interface Props {
   slides: FlashCarouselSlide[];
@@ -39,28 +40,46 @@ const { slides } = Astro.props;
                 class="carousel-track scrollbar-hide flex w-full snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-40 pt-4 md:pb-32"
                 tabindex="0"
               >
-                {slides.map((slide, i) => (
+                {slides.map((slide, i) => {
+                  const showVideo =
+                    slide.coverMediaType === "video" &&
+                    Boolean(slide.videoUrl) &&
+                    !isPosterImage(slide.imagenUrl);
+                  return (
                   <article
                     class="relative min-w-0 w-full shrink-0 snap-center snap-always basis-full"
                     aria-label={`Noticia ${i + 1} de ${slides.length}`}
                     data-slide-index={i}
                   >
                     <div class="group relative aspect-square w-full overflow-hidden rounded-[2rem] border-[4px] border-white/20 bg-[#041d3d] shadow-2xl sm:aspect-video md:aspect-[21/9] md:border-[6px]">
-                      <img
-                        src={slide.imagenUrl}
-                        alt=""
-                        aria-hidden="true"
-                        class={COVER_IMG_BLUR_CLASS}
-                        loading={i === 0 ? "eager" : "lazy"}
-                        decoding="async"
-                      />
-                      <img
-                        src={slide.imagenUrl}
-                        alt={slide.imagenAlt}
-                        class="absolute inset-0 h-full w-full object-contain transition-transform duration-700 group-hover:scale-105"
-                        loading={i === 0 ? "eager" : "lazy"}
-                        decoding="async"
-                      />
+                      {showVideo && slide.videoUrl ? (
+                        <video
+                          src={slide.videoUrl}
+                          muted
+                          playsinline
+                          preload="metadata"
+                          class="absolute inset-0 h-full w-full object-contain transition-transform duration-700 group-hover:scale-105"
+                          aria-label={slide.titulo}
+                        />
+                      ) : (
+                        <>
+                          <img
+                            src={slide.imagenUrl}
+                            alt=""
+                            aria-hidden="true"
+                            class={COVER_IMG_BLUR_CLASS}
+                            loading={i === 0 ? "eager" : "lazy"}
+                            decoding="async"
+                          />
+                          <img
+                            src={slide.imagenUrl}
+                            alt={slide.imagenAlt}
+                            class="absolute inset-0 h-full w-full object-contain transition-transform duration-700 group-hover:scale-105"
+                            loading={i === 0 ? "eager" : "lazy"}
+                            decoding="async"
+                          />
+                        </>
+                      )}
                     </div>
 
                     <div class="absolute bottom-0 left-0 right-0 z-20 mx-auto flex w-[92%] translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-white/40 bg-[#d2d6d9]/95 p-4 shadow-2xl backdrop-blur-md md:w-[85%] md:p-5">
@@ -94,7 +113,8 @@ const { slides } = Astro.props;
                       </div>
                     </div>
                   </article>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
