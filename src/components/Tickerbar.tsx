@@ -45,7 +45,7 @@ const FALLBACK_ITEMS: TickerItem[] = [
   },
   {
     id: "cafe",
-    label: "Café (arábica)",
+    label: "Café (Colombia)",
     value: "Cargando...",
     icon: "\u2615",
   },

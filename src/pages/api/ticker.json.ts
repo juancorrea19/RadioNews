@@ -62,7 +62,7 @@ const defaultTickerData = (): TickerItem[] => [
   },
   {
     id: "cafe",
-    label: "Café (arábica)",
+    label: "Café (Colombia)",
     value: "No disponible",
     icon: "\u2615",
   },
@@ -130,15 +130,128 @@ async function fetchCommodityRates(apiKey: string, symbols: string[]): Promise<R
   return payload.rates;
 }
 
-function applyCommodityRates(data: TickerItem[], rates: Record<string, number>) {
-  const gold = getTickerItemById(data, "oro");
-  if (gold && typeof rates.XAU === "number") {
-    gold.value = `$${rates.XAU.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} /oz`;
+function applyGoldPrice(data: TickerItem[], price: number) {
+  const item = getTickerItemById(data, "oro");
+  if (item && Number.isFinite(price)) {
+    item.value = `$${price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} /oz`;
+  }
+}
+
+/**
+ * CommodityPriceAPI puede quedar sin cupo/plan pago (HTTP 402) en cualquier
+ * momento. FMP y Twelve Data ya se usan para el S&P 500 y tambien cotizan
+ * oro (XAUUSD/GCUSD y XAU/USD respectivamente), asi que sirven de respaldo
+ * gratuito sin depender de una clave adicional.
+ */
+async function hydrateGold(data: TickerItem[], opts: { commodityApiKey?: string; fmpApiKey?: string; twelveDataKey?: string }) {
+  if (opts.commodityApiKey) {
+    try {
+      const rates = await fetchCommodityRates(opts.commodityApiKey, ["XAU"]);
+      if (typeof rates.XAU === "number") {
+        applyGoldPrice(data, rates.XAU);
+        return;
+      }
+    } catch (e) {
+      console.warn("Oro CommodityPriceAPI:", e);
+    }
   }
 
-  const coffee = getTickerItemById(data, "cafe");
-  if (coffee && typeof rates.CA === "number") {
-    coffee.value = `$${rates.CA.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} /lb`;
+  if (opts.fmpApiKey) {
+    for (const sym of ["XAUUSD", "GCUSD"]) {
+      try {
+        const q = await fetchFmpQuoteFlexible(sym, opts.fmpApiKey);
+        applyGoldPrice(data, toFiniteNumber(q.price));
+        return;
+      } catch {
+        /* siguiente simbolo */
+      }
+    }
+    console.warn("Oro FMP: ningun simbolo ni endpoint respondio.");
+  }
+
+  if (opts.twelveDataKey) {
+    try {
+      const q = await fetchTwelveDataQuote("XAU/USD", opts.twelveDataKey);
+      applyGoldPrice(data, toFiniteNumber(q.close));
+    } catch (e) {
+      console.warn("Oro Twelve Data:", e);
+    }
+  }
+}
+
+interface FncCoffeeIndicators {
+  referenceCop?: number;
+  nyCentsPerLb?: number;
+}
+
+/**
+ * La FNC no ofrece API/JSON oficial. El indicador diario si viene como texto
+ * plano (sin JS) en el widget "ticker" de esta página, a diferencia del resto
+ * del sitio que carga los valores por JS. Si la FNC cambia ese widget, esta
+ * función simplemente deja de encontrar coincidencias y el fetch se rechaza,
+ * cayendo al valor por defecto ("No disponible") sin romper el resto del ticker.
+ */
+const FNC_INDICATORS_URL = "https://federaciondecafeteros.org/informe-mensual-de-cifras/";
+
+function parseEsNumber(raw: string): number {
+  const cleaned = raw.replace(/[^0-9.,]/g, "");
+  return cleaned.includes(",")
+    ? Number(cleaned.replace(/\./g, "").replace(",", "."))
+    : Number(cleaned.replace(/\./g, ""));
+}
+
+function extractFncTickerValue(html: string, label: string): string | undefined {
+  const pattern = new RegExp(
+    `<span class="fnc-ticker-name">\\s*${label}:?\\s*</span>\\s*<span class="fnc-ticker-value">\\s*([^<]+?)\\s*</span>`,
+    "i",
+  );
+  return html.match(pattern)?.[1]?.trim();
+}
+
+async function fetchFncCoffeeIndicators(): Promise<FncCoffeeIndicators> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 6000);
+
+  let html: string;
+  try {
+    const response = await fetch(FNC_INDICATORS_URL, { signal: controller.signal });
+    if (!response.ok) {
+      throw new Error(`FNC HTTP ${response.status}`);
+    }
+    html = await response.text();
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  const referenceRaw = extractFncTickerValue(html, "Precio interno de referencia");
+  const nyRaw = extractFncTickerValue(html, "Bolsa de NY");
+
+  const referenceCop = referenceRaw ? parseEsNumber(referenceRaw) : Number.NaN;
+  const nyCentsPerLb = nyRaw ? parseEsNumber(nyRaw) : Number.NaN;
+
+  if (!Number.isFinite(referenceCop)) {
+    throw new Error("FNC: no se encontro el precio interno de referencia en la pagina");
+  }
+
+  return {
+    referenceCop,
+    nyCentsPerLb: Number.isFinite(nyCentsPerLb) ? nyCentsPerLb : undefined,
+  };
+}
+
+function applyFncCoffeePrice(data: TickerItem[], indicators: FncCoffeeIndicators) {
+  const item = getTickerItemById(data, "cafe");
+  if (!item) {
+    return;
+  }
+
+  if (typeof indicators.referenceCop === "number" && Number.isFinite(indicators.referenceCop)) {
+    item.value = `$${indicators.referenceCop.toLocaleString("es-CO")} /carga`;
+  }
+
+  if (typeof indicators.nyCentsPerLb === "number" && Number.isFinite(indicators.nyCentsPerLb)) {
+    item.change = `Bolsa NY ${indicators.nyCentsPerLb.toFixed(2)}\u00A2`;
+    item.changePositive = undefined;
   }
 }
 
@@ -289,12 +402,10 @@ export const GET: APIRoute = async () => {
         ? fetch(`https://v6.exchangerate-api.com/v6/${EXCHANGE_KEY}/latest/USD`)
         : Promise.reject(new Error("Falta EXCHANGE_RATE_API_KEY")),
       fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true"),
-      COMMODITY_API_KEY
-        ? fetchCommodityRates(COMMODITY_API_KEY, ["XAU", "CA"])
-        : Promise.reject(new Error("Falta COMMODITY_PRICE_API_KEY")),
+      fetchFncCoffeeIndicators(),
     ]);
 
-    const [weatherResult, exchangeResult, btcResult, commodityResult] = requests;
+    const [weatherResult, exchangeResult, btcResult, fncCoffeeResult] = requests;
 
     const data = defaultTickerData();
 
@@ -303,6 +414,12 @@ export const GET: APIRoute = async () => {
       fmpSp500Symbol: FMP_SP500_SYMBOL,
       twelveDataKey: TWELVE_DATA_KEY,
       twelveSp500Symbol: TWELVE_DATA_SP500_SYMBOL,
+    });
+
+    await hydrateGold(data, {
+      commodityApiKey: COMMODITY_API_KEY,
+      fmpApiKey: FMP_API_KEY,
+      twelveDataKey: TWELVE_DATA_KEY,
     });
 
     if (exchangeResult?.status === "fulfilled" && exchangeResult.value.ok) {
@@ -354,10 +471,10 @@ export const GET: APIRoute = async () => {
       console.error("Error consultando Bitcoin:", btcResult.reason);
     }
 
-    if (commodityResult?.status === "fulfilled") {
-      applyCommodityRates(data, commodityResult.value);
-    } else if (commodityResult?.status === "rejected") {
-      console.error("Error consultando CommodityPriceAPI (oro/café):", commodityResult.reason);
+    if (fncCoffeeResult?.status === "fulfilled") {
+      applyFncCoffeePrice(data, fncCoffeeResult.value);
+    } else if (fncCoffeeResult?.status === "rejected") {
+      console.error("Error consultando precio interno del café (FNC):", fncCoffeeResult.reason);
     }
 
     return new Response(JSON.stringify(data), {
